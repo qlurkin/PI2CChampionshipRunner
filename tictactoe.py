@@ -57,7 +57,7 @@ def TicTacToe(*players):
 		newState['board'][move] = symbols[state['current']]
 
 		if isWinning(newState['board']):
-			raise game.GameWin(state['current'])
+			raise game.GameWin(state['current'], newState)
 
 		newState['current'] = (state['current'] + 1) % 2
 		return newState
@@ -71,7 +71,6 @@ if __name__=='__main__':
 		for i in range(3):
 			print(getLine(board, i))
 
-
 	state, next = TicTacToe('LUR', 'LRG')
 	try:
 		while True:
@@ -82,7 +81,5 @@ if __name__=='__main__':
 			except game.BadMove as e:
 				print(e)
 	except game.GameWin as e:
-		show(state['board'])
+		show(e.state['board'])
 		print('{} win the game'.format(state['players'][e.winner]))
-
-
