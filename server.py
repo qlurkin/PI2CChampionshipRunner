@@ -1,6 +1,6 @@
 import socket
 from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject
-from threading import Thread
+from threading import Thread, Timer
 import time
 
 inscriptionSocket = socket.socket()
@@ -10,7 +10,32 @@ inscriptionSocket.listen()
 
 running = True
 
-players = {}
+clients = {}
+
+def fetch(address, data):
+	s = socket.socket()
+	s.connect(address)
+	sendJSON(s, data)
+	response = receiveJSON(s)
+	return response
+
+def checkClient(address):
+	print('checking client {}'.format(address))
+	try:
+		response = fetch(address, {
+			'request': 'ping'
+		})
+		if response['response'] == 'pong':
+			clients[address]['status'] = 'online'
+		else:
+			raise ValueError()
+	except:
+		clients[address]['status'] = 'lost'
+	print(clients[address]['status'])
+
+def checkAllClients():
+	for address in clients:
+		checkClient(address)
 
 def processRequest(client, address):
 	print('request from', address)
@@ -22,16 +47,20 @@ def processRequest(client, address):
 
 		clientAddress = (address[0], int(data['port']))
 		
-		players[clientAddress] = {
+		clients[clientAddress] = {
 			'name': data['name'],
-			'address': clientAddress
+			'address': clientAddress,
+			'status': 'pending'
 		}
 		
-		print('{} subscribed with address {}'.format(players[clientAddress]['name'], players[clientAddress]['address']))
+		print('{} subscribed with address {}'.format(clients[clientAddress]['name'], clients[clientAddress]['address']))
 		
 		sendJSON(client, {
 			'response': 'ok'
 		})
+
+		Timer(2, checkClient, [clientAddress]).start()
+
 	except socket.timeout:
 		sendJSON(client, {
 			'response': 'error',
