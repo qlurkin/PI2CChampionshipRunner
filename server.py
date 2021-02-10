@@ -1,6 +1,6 @@
 import socket
 from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject
-from threading import Thread, Timer
+from threading import Thread, Timer, Lock
 import time
 
 inscriptionSocket = socket.socket()
@@ -11,6 +11,9 @@ inscriptionSocket.listen()
 running = True
 
 clients = {}
+
+match = []
+matchLock = Lock()
 
 def fetch(address, data):
 	s = socket.socket()
@@ -47,12 +50,18 @@ def processRequest(client, address):
 
 		clientAddress = (address[0], int(data['port']))
 		
-		clients[clientAddress] = {
-			'name': data['name'],
-			'address': clientAddress,
-			'status': 'pending'
-		}
-		
+		with matchLock.acquire():
+
+			for opponent in clients:
+				match.append([clientAddress, opponent])
+				match.append([opponent, clientAddress])
+			
+			clients[clientAddress] = {
+				'name': data['name'],
+				'address': clientAddress,
+				'status': 'pending'
+			}
+	
 		print('{} subscribed with address {}'.format(clients[clientAddress]['name'], clients[clientAddress]['address']))
 		
 		sendJSON(client, {
@@ -60,6 +69,8 @@ def processRequest(client, address):
 		})
 
 		Timer(2, checkClient, [clientAddress]).start()
+
+		print('MATCH LIST:\n{}'.format('\n'.join(map(lambda address: '{}:{}'.format(address[0], address[1]), match))))
 
 	except socket.timeout:
 		sendJSON(client, {
