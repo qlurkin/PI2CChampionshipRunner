@@ -2,6 +2,8 @@ import socket
 from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject
 from threading import Thread, Timer, Lock
 import time
+from tictactoe import Game
+import game
 
 inscriptionSocket = socket.socket()
 inscriptionSocket.bind(('0.0.0.0', 3000))
@@ -29,16 +31,69 @@ def checkClient(address):
 			'request': 'ping'
 		})
 		if response['response'] == 'pong':
-			clients[address]['status'] = 'online'
+			status = 'online'
 		else:
 			raise ValueError()
 	except:
-		clients[address]['status'] = 'lost'
-	print(clients[address]['status'])
+		status = 'lost'
+
+	print(status)
+	return status
 
 def checkAllClients():
 	for address in clients:
 		checkClient(address)
+
+def subscribe(address, name):
+	status = checkClient(address)
+	if status == 'online':
+		with matchLock:
+			if address not in clients:
+				for opponent in clients:
+					match.append([address, opponent])
+					match.append([opponent, address])
+
+			clients[address] = {
+				'name': name,
+				'address': address,
+				'status': status
+			}
+			
+		print('MATCH LIST:\n{}'.format('\n'.join(map(lambda address: '{}:{}'.format(address[0], address[1]), match))))
+		if len(match) > 0:
+			runMatch(match[0])
+
+
+def runMatch(players):
+	for i in range(len(players)):
+		players[i] = clients[players[i]]
+
+	state, next = Game(list(map(lambda P: P['name'], players)))
+	state['current'] = 0
+
+	print('{} VS {}'.format(players[0]['name'], players[1]['name']))
+
+	attempts = 0
+	try:
+		while attempts < 3:
+			print('Request move from {}'.format(players[state['current']]['name']))
+			response = fetch(players[state['current']]['address'], {
+				'request': 'play',
+				'attempts': attempts,
+				'state': state
+			})
+			if response['response'] == 'move':
+				try:
+					state = next(state, response['move'])
+					attempts = 0
+				except game.BadMove:
+					print('Bad Move')
+					attempts += 1
+		print(players[state['current']]['name'], 'has done too many Bad Moves')
+	except game.GameWin as e:
+		print('Winner', players[e.winner])
+	except game.GameDraw:
+		print('Draw')
 
 def processRequest(client, address):
 	print('request from', address)
@@ -49,28 +104,14 @@ def processRequest(client, address):
 			raise ValueError('Unknown request \'{}\''.format(data['request']))
 
 		clientAddress = (address[0], int(data['port']))
-		
-		with matchLock:
-
-			for opponent in clients:
-				match.append([clientAddress, opponent])
-				match.append([opponent, clientAddress])
-			
-			clients[clientAddress] = {
-				'name': data['name'],
-				'address': clientAddress,
-				'status': 'pending'
-			}
 	
-		print('{} subscribed with address {}'.format(clients[clientAddress]['name'], clients[clientAddress]['address']))
+		print('Subscription received for {} with address {}'.format(data['name'], clientAddress))
 		
 		sendJSON(client, {
 			'response': 'ok'
 		})
 
-		Timer(2, checkClient, [clientAddress]).start()
-
-		print('MATCH LIST:\n{}'.format('\n'.join(map(lambda address: '{}:{}'.format(address[0], address[1]), match))))
+		Timer(2, subscribe, [clientAddress, data['name']]).start()
 
 	except socket.timeout:
 		sendJSON(client, {

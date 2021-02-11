@@ -36,7 +36,7 @@ def isFull(board):
 			return False
 	return True
 
-def TicTacToe(*players):
+def TicTacToe(players):
 	if len(players) != 2:
 		raise game.BadGameInit('Tic Tac Toe must be played by 2 players')
 
@@ -80,7 +80,7 @@ if __name__=='__main__':
 		for i in range(3):
 			print(getLine(board, i))
 
-	state, next = TicTacToe('LUR', 'LRG')
+	state, next = TicTacToe(['LUR', 'LRG'])
 	try:
 		while True:
 			show(state['board'])
