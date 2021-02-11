@@ -30,6 +30,12 @@ def isWinning(board):
 		return True
 	return same(getDiagonal(board, -1))
 
+def isFull(board):
+	for elem in board:
+		if elem is None:
+			return False
+	return True
+
 def TicTacToe(*players):
 	if len(players) != 2:
 		raise game.BadGameInit('Tic Tac Toe must be played by 2 players')
@@ -58,6 +64,9 @@ def TicTacToe(*players):
 
 		if isWinning(newState['board']):
 			raise game.GameWin(state['current'], newState)
+
+		if isFull(newState['board']):
+			raise game.GameDraw()
 
 		newState['current'] = (state['current'] + 1) % 2
 		return newState

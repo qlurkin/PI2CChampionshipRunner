@@ -17,5 +17,8 @@ class GameWin(Exception):
 class BadMove(Exception):
 	pass
 
+class GameDraw(Exception):
+	pass
+
 class BadGameInit(Exception):
 	pass
