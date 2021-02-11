@@ -85,6 +85,7 @@ def runMatch(players):
 				'state': state
 			})
 			if response['response'] == 'move':
+				print('{} play:\n{}'.format(players[state['current']]['name'], response['move']))
 				try:
 					state = next(state, response['move'])
 					attempts = 0
