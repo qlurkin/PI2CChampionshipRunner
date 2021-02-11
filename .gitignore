@@ -130,3 +130,4 @@ dmypy.json
 
 client.py
 *.code-workspace
+data.json
