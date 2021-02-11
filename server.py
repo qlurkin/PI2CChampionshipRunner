@@ -50,7 +50,7 @@ def processRequest(client, address):
 
 		clientAddress = (address[0], int(data['port']))
 		
-		with matchLock.acquire():
+		with matchLock:
 
 			for opponent in clients:
 				match.append([clientAddress, opponent])
