@@ -53,11 +53,13 @@ def subscribe(address, name):
 					match.append([address, opponent])
 					match.append([opponent, address])
 
-			clients[address] = {
-				'name': name,
-				'address': address,
-				'status': status
-			}
+				clients[address] = {
+					'address': address,
+					'points': 0
+				}
+
+			clients[address]['name'] = name
+			clients[address]['status'] = status
 			
 		print('MATCH LIST:\n{}'.format('\n'.join(map(lambda address: '{}:{}'.format(address[0], address[1]), match))))
 		if len(match) > 0:
@@ -91,7 +93,7 @@ def runMatch(players):
 					attempts += 1
 		print(players[state['current']]['name'], 'has done too many Bad Moves')
 	except game.GameWin as e:
-		print('Winner', players[e.winner])
+		print('Winner', players[e.winner]['name'])
 	except game.GameDraw:
 		print('Draw')
 
