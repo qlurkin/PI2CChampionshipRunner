@@ -66,7 +66,7 @@ def TicTacToe(players):
 			raise game.GameWin(state['current'], newState)
 
 		if isFull(newState['board']):
-			raise game.GameDraw()
+			raise game.GameDraw(newState)
 
 		newState['current'] = (state['current'] + 1) % 2
 		return newState
