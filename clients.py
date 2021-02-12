@@ -27,6 +27,7 @@ def add(address, name, matricules):
 		__clients[address]['name'] = name
 		__clients[address]['status'] = 'online'
 
+
 def getMatch():
 	'''
 		get the first match of the Queue
@@ -38,11 +39,29 @@ def getMatch():
 			__match[0:1] = []
 	return players
 
+
 def get(address):
 	'''
 		Get a client
 	'''
 	return copy.deepcopy(__clients[address])
+
+
+def getAll():
+	'''
+		Get All Clients
+	'''
+	return copy.deepcopy(__clients.values())
+
+
+def clear():
+	'''
+		Clear All Clients and Matches
+	'''
+	with __matchLock:
+		__clients.clear()
+		__match.clear()
+
 
 def matchWin(players, winner):
 	'''
@@ -52,6 +71,7 @@ def matchWin(players, winner):
 		__clients[player]['matchCount'] += 1
 	__clients[players[winner]]['points'] += 3
 
+
 def matchDraw(players):
 	'''
 		Update clients
@@ -60,11 +80,13 @@ def matchDraw(players):
 		__clients[player]['points'] += 1
 		__clients[player]['matchCount'] += 1
 
+
 def addBadMoves(player, count):
 	'''
 		Update clients
 	'''
 	__clients[player]['badMoves'] += count
+
 
 def save():
 	'''
@@ -72,5 +94,3 @@ def save():
 	'''
 	with open('data.json', 'w', encoding='utf8') as file:
 		json.dump(list(__clients.values()), file, indent='\t')
-
-
