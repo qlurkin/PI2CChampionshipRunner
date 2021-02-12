@@ -10,6 +10,9 @@ import clients
 
 
 def fetch(address, data):
+	'''
+		Request response from address. Data is included in the request
+	'''
 	s = socket.socket()
 	s.connect(address)
 	sendJSON(s, data)
@@ -18,6 +21,9 @@ def fetch(address, data):
 
 
 def checkClient(address):
+	'''
+		Ping client
+	'''
 	print('checking client {}'.format(address))
 	try:
 		response = fetch(address, {
@@ -35,12 +41,15 @@ def checkClient(address):
 
 
 def finalizeSubscription(address, name, matricules):
+	'''
+		Add client if successfully pinged
+	'''
 	status = checkClient(address)
 	if status == 'online':
 		clients.add(address, name, matricules)
 
 
-def runMatch(addresses):
+def runMatch(addresses): 
 	players = []
 	for i in range(len(addresses)):
 		players.append(clients.get(addresses[i]))
@@ -78,6 +87,10 @@ def runMatch(addresses):
 
 
 def startSubscription(client, address, request):
+	'''
+	Because client may be single threaded, he may start listening to request
+	after sending his substriction. We wait for 1 second before pinging him
+	'''
 	clientAddress = (address[0], int(request['port']))
 	
 	print('Subscription received for {} with address {}'.format(request['name'], clientAddress))
@@ -93,6 +106,9 @@ def startSubscription(client, address, request):
 
 
 def processRequest(client, address):
+	'''
+		Route request to request handlers
+	'''
 	print('request from', address)
 	try:
 		request = receiveJSON(client)
@@ -125,6 +141,9 @@ def processRequest(client, address):
 
 
 def listenForRequests(port):
+	'''
+		Start thread to listen to requests
+	'''
 	running = True
 	def processClients():
 		with socket.socket() as s:
@@ -151,9 +170,7 @@ def listenForRequests(port):
 
 
 if __name__ == '__main__':
-	
 	stopSubscriptions = listenForRequests(3000)
-
 	Game = importlib.import_module(sys.argv[1]).Game
 
 	try:
