@@ -51,7 +51,7 @@ def getAll():
 	'''
 		Get All Clients
 	'''
-	return copy.deepcopy(__clients.values())
+	return copy.deepcopy(list(__clients.values()))
 
 
 def clear():
