@@ -142,7 +142,8 @@ def processRequest(client, address):
 
 def listenForRequests(port):
 	'''
-		Start thread to listen to requests
+		Start thread to listen to requests.
+		Returns a function to stop the thread.
 	'''
 	running = True
 	def processClients():
@@ -150,6 +151,7 @@ def listenForRequests(port):
 			s.bind(('0.0.0.0', port))
 			s.settimeout(1)
 			s.listen()
+			print('Listen to', port)
 			while running:
 				try:
 					client, address = s.accept()
@@ -170,8 +172,17 @@ def listenForRequests(port):
 
 
 if __name__ == '__main__':
-	stopSubscriptions = listenForRequests(3000)
-	Game = importlib.import_module(sys.argv[1]).Game
+	args = sys.argv[1:]
+	port = 3000
+	gameName = None
+	for arg in args:
+		if arg.startswith('-port='):
+			port = int(arg[len('-port='):])
+		else:
+			gameName = arg
+
+	stopSubscriptions = listenForRequests(port)
+	Game = importlib.import_module(gameName).Game
 
 	try:
 		print('Ctrl-C to stop')
