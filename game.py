@@ -18,7 +18,12 @@ class BadMove(Exception):
 	pass
 
 class GameDraw(Exception):
-	pass
+	def __init__(self, lastState):
+		self.__state = lastState
+
+	@property
+	def state(self):
+		return self.__state
 
 class BadGameInit(Exception):
 	pass
