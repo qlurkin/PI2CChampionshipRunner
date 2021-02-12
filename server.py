@@ -1,24 +1,13 @@
 import socket
 from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject
-from threading import Thread, Timer, Lock
+from threading import Thread, Timer
 import time
 from tictactoe import Game
 import importlib
 import game
 import sys
-import json
+import clients
 
-inscriptionSocket = socket.socket()
-inscriptionSocket.bind(('0.0.0.0', 3000))
-inscriptionSocket.settimeout(1)
-inscriptionSocket.listen()
-
-running = True
-
-clients = {}
-
-match = []
-matchLock = Lock()
 
 def fetch(address, data):
 	s = socket.socket()
@@ -26,6 +15,7 @@ def fetch(address, data):
 	sendJSON(s, data)
 	response = receiveJSON(s)
 	return response
+
 
 def checkClient(address):
 	print('checking client {}'.format(address))
@@ -43,37 +33,17 @@ def checkClient(address):
 	print(status)
 	return status
 
-def checkAllClients():
-	for address in clients:
-		checkClient(address)
 
-def subscribe(address, name, matricules):
+def finalizeSubscription(address, name, matricules):
 	status = checkClient(address)
 	if status == 'online':
-		with matchLock:
-			if address not in clients:
-				for opponent in clients:
-					match.append([address, opponent])
-					match.append([opponent, address])
-
-				clients[address] = {
-					'address': address,
-					'points': 0,
-					'badMoves': 0,
-					'matchCount': 0,
-					'matricules': matricules
-				}
-
-			clients[address]['name'] = name
-			clients[address]['status'] = status
-			
-		print('MATCH LIST:\n{}'.format('\n'.join(map(lambda address: '{}:{}'.format(address[0], address[1]), match))))
+		clients.add(address, name, matricules)
 
 
-def runMatch(playersAddress):
+def runMatch(addresses):
 	players = []
-	for i in range(len(playersAddress)):
-		players.append(clients[playersAddress[i]])
+	for i in range(len(addresses)):
+		players.append(clients.get(addresses[i]))
 
 	state, next = Game(list(map(lambda P: P['name'], players)))
 	state['current'] = 0
@@ -106,26 +76,31 @@ def runMatch(playersAddress):
 		print('Draw')
 		return None, badMoves()
 
+
+def startSubscription(client, address, request):
+	clientAddress = (address[0], int(request['port']))
+	
+	print('Subscription received for {} with address {}'.format(request['name'], clientAddress))
+
+	if any([not isinstance(matricule, str) for matricule in request['matricules']]):
+		raise TypeError("Matricules must be strings")
+	
+	sendJSON(client, {
+		'response': 'ok'
+	})
+
+	Timer(1, finalizeSubscription, [clientAddress, request['name'], request['matricules']]).start()
+
+
 def processRequest(client, address):
 	print('request from', address)
 	try:
-		data = receiveJSON(client)
+		request = receiveJSON(client)
 		
-		if data['request'] != 'subscribe':
-			raise ValueError('Unknown request \'{}\''.format(data['request']))
-
-		clientAddress = (address[0], int(data['port']))
-	
-		print('Subscription received for {} with address {}'.format(data['name'], clientAddress))
-
-		if any([not isinstance(matricule, str) for matricule in data['matricules']]):
-			raise TypeError("Matricules must be strings")
-		
-		sendJSON(client, {
-			'response': 'ok'
-		})
-
-		Timer(1, subscribe, [clientAddress, data['name'], data['matricules']]).start()
+		if request['request'] == 'subscribe':
+			startSubscription(client, address, request)
+		else:
+			raise ValueError('Unknown request \'{}\''.format(request['request']))
 
 	except socket.timeout:
 		sendJSON(client, {
@@ -149,44 +124,54 @@ def processRequest(client, address):
 		})
 
 
-def processClients():
-	while running:
-		try:
-			client, address = inscriptionSocket.accept()
-			processRequest(client, address)
-			client.close()
-		except socket.timeout:
-			pass
+def listenForRequests(port):
+	running = True
+	def processClients():
+		with socket.socket() as s:
+			s.bind(('0.0.0.0', port))
+			s.settimeout(1)
+			s.listen()
+			while running:
+				try:
+					client, address = s.accept()
+					with client:
+						processRequest(client, address)
+				except socket.timeout:
+					pass
+	
+	listenThread = Thread(target=processClients, daemon=True)
+	listenThread.start()
+
+	def stop():
+		nonlocal running
+		running = False
+		listenThread.join()
+
+	return stop
 
 
 if __name__ == '__main__':
-	listenThread = Thread(target=processClients, daemon=True)
-	listenThread.start()
+	
+	stopSubscriptions = listenForRequests(3000)
 
 	Game = importlib.import_module(sys.argv[1]).Game
 
 	try:
 		print('Ctrl-C to stop')
 		while True:
-			players = None
-			with matchLock:
-				if len(match) > 0:
-					players = match[0]
-					match[0:1] = []
+			players = clients.getMatch()
 			if players is not None:
 				winner, badMoves = runMatch(players)
 				for player, count in enumerate(badMoves):
-					clients[players[player]]['badMoves'] += count
-					clients[players[player]]['matchCount'] += 1
-					if winner is None:
-						clients[players[player]]['points'] += 1
-					elif winner == player:
-						clients[players[player]]['points'] += 3
-				with open('data.json', 'w', encoding='utf8') as file:
-					json.dump(list(clients.values()), file, indent='\t')
+					clients.addBadMoves(players[player], count)
+				if winner is None:
+					clients.matchDraw(players)
+				else:
+					clients.matchWin(players, winner)
+				clients.save()
 			time.sleep(1)
 	except KeyboardInterrupt:
 		print('bye')
 
-	running = False
-	listenThread.join()
+	
+	stopSubscriptions()
