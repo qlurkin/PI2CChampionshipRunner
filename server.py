@@ -1,4 +1,7 @@
+from copy import copy
 import socket
+
+from pygame.constants import QUIT
 from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject
 from threading import Thread, Timer
 import time
@@ -7,6 +10,8 @@ import importlib
 import game
 import sys
 import clients
+import pygame
+import copy
 
 
 def fetch(address, data):
@@ -49,13 +54,14 @@ def finalizeSubscription(address, name, matricules):
 		clients.add(address, name, matricules)
 
 
-def runMatch(addresses): 
+def runMatch(addresses, postState): 
 	players = []
 	for i in range(len(addresses)):
 		players.append(clients.get(addresses[i]))
 
 	state, next = Game(list(map(lambda P: P['name'], players)))
 	state['current'] = 0
+	postState(state)
 
 	print('{} VS {}'.format(players[0]['name'], players[1]['name']))
 
@@ -73,6 +79,7 @@ def runMatch(addresses):
 				print('{} play:\n{}'.format(players[state['current']]['name'], response['move']))
 				try:
 					state = next(state, response['move'])
+					postState(state)
 				except game.BadMove:
 					print('Bad Move')
 					lives[state['current']] -= 1
@@ -80,9 +87,11 @@ def runMatch(addresses):
 		return (state['current']+1)%2, badMoves()
 	except game.GameWin as e:
 		print('Winner', players[e.winner]['name'])
+		postState(e.state)
 		return e.winner, badMoves()
-	except game.GameDraw:
+	except game.GameDraw as e:
 		print('Draw')
+		postState(e.state)
 		return None, badMoves()
 
 
@@ -170,6 +179,81 @@ def listenForRequests(port):
 
 	return stop
 
+def championship():
+	running = True
+	state = None
+
+	def postState(newState):
+		nonlocal state
+		state = copy.deepcopy(newState)
+		time.sleep(1)
+
+	def run():
+		while running:
+			players = clients.getMatch()
+			if players is not None:
+				winner, badMoves = runMatch(players, postState)
+				for player, count in enumerate(badMoves):
+					clients.addBadMoves(players[player], count)
+				if winner is None:
+					clients.matchDraw(players)
+				else:
+					clients.matchWin(players, winner)
+				postState(None)
+				clients.save()
+			else:
+				time.sleep(1)
+	
+	champioshipThread = Thread(target=run, daemon=True)
+	champioshipThread.start()
+
+	def stop():
+		nonlocal running
+		running = False
+		champioshipThread.join()
+
+	def getState():
+		return state
+
+	return stop, getState
+
+def formatClient(client):
+	return '{}: {}'.format(client['name'], client['points'])
+
+def main(getState):
+	pygame.init()
+	screen = pygame.display.set_mode((1280, 800))
+	pygame.display.set_caption('{} Championship'.format(gameName.capitalize()))
+
+	surface = pygame.Surface(screen.get_size())
+	surface = surface.convert()
+
+	clock = pygame.time.Clock()
+	font = pygame.font.Font(None, 36)
+
+	while True:
+		clock.tick(60)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				return
+
+		state = getState()
+		participants = clients.getAll()
+		surface.fill((0, 0, 0))
+
+		text = font.render(' | '.join(map(formatClient, participants)), 1, (255, 255, 255))
+		surface.blit(text, (5, 30))
+
+		if state is not None:
+			text = font.render(str(state['board']), 1, (255, 255, 255))
+		else:
+			text = font.render('Waiting...', 1, (255, 255, 255))
+
+		surface.blit(text, (5, 5))
+
+		screen.blit(surface, (0, 0))
+		pygame.display.flip()
+
 
 if __name__ == '__main__':
 	args = sys.argv[1:]
@@ -184,22 +268,11 @@ if __name__ == '__main__':
 	stopSubscriptions = listenForRequests(port)
 	Game = importlib.import_module(gameName).Game
 
-	try:
-		print('Ctrl-C to stop')
-		while True:
-			players = clients.getMatch()
-			if players is not None:
-				winner, badMoves = runMatch(players)
-				for player, count in enumerate(badMoves):
-					clients.addBadMoves(players[player], count)
-				if winner is None:
-					clients.matchDraw(players)
-				else:
-					clients.matchWin(players, winner)
-				clients.save()
-			time.sleep(1)
-	except KeyboardInterrupt:
-		print('bye')
+	stopChampionship, getState = championship()
+
+
+	main(getState)
 
 	
 	stopSubscriptions()
+	stopChampionship()
