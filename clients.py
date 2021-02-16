@@ -87,6 +87,12 @@ def addBadMoves(player, count):
 	'''
 	__clients[player]['badMoves'] += count
 
+def changeStatus(player, status):
+	'''
+		Update client status
+	'''
+	__clients[player]['status'] = status
+
 
 def save():
 	'''
