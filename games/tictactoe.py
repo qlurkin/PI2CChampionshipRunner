@@ -1,4 +1,4 @@
-import game
+from games import game
 import copy
 
 def same(L):
