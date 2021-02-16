@@ -1,13 +1,11 @@
 from copy import copy
 import socket
 
-from pygame.constants import QUIT
 from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject
 from threading import Thread, Timer
 import time
-from tictactoe import Game
 import importlib
-import game
+from games import game
 import sys
 import clients
 import pygame
@@ -43,6 +41,11 @@ def checkClient(address):
 
 	print(status)
 	return status
+
+def checkAllClient():
+	for client in clients.getAll():
+		status = checkClient(client['address'])
+		clients.changeStatus(client['address'], status)
 
 
 def finalizeSubscription(address, name, matricules):
@@ -200,17 +203,18 @@ def championship():
 				else:
 					clients.matchWin(players, winner)
 				postState(None)
+				checkAllClient()
 				clients.save()
 			else:
 				time.sleep(1)
 	
-	champioshipThread = Thread(target=run, daemon=True)
-	champioshipThread.start()
+	championshipThread = Thread(target=run, daemon=True)
+	championshipThread.start()
 
 	def stop():
 		nonlocal running
 		running = False
-		champioshipThread.join()
+		championshipThread.join()
 
 	def getState():
 		return state
@@ -222,11 +226,9 @@ def formatClient(client):
 
 def main(getState):
 	pygame.init()
-	screen = pygame.display.set_mode((1280, 800))
+	import graphics
+	screen = pygame.display.set_mode(graphics.screenSize)
 	pygame.display.set_caption('{} Championship'.format(gameName.capitalize()))
-
-	surface = pygame.Surface(screen.get_size())
-	surface = surface.convert()
 
 	clock = pygame.time.Clock()
 	font = pygame.font.Font(None, 36)
@@ -239,17 +241,8 @@ def main(getState):
 
 		state = getState()
 		participants = clients.getAll()
-		surface.fill((0, 0, 0))
 
-		text = font.render(' | '.join(map(formatClient, participants)), 1, (255, 255, 255))
-		surface.blit(text, (5, 30))
-
-		if state is not None:
-			text = font.render(str(state['board']), 1, (255, 255, 255))
-		else:
-			text = font.render('Waiting...', 1, (255, 255, 255))
-
-		surface.blit(text, (5, 5))
+		surface = graphics.render(state, participants)
 
 		screen.blit(surface, (0, 0))
 		pygame.display.flip()
@@ -266,7 +259,8 @@ if __name__ == '__main__':
 			gameName = arg
 
 	stopSubscriptions = listenForRequests(port)
-	Game = importlib.import_module(gameName).Game
+
+	Game = importlib.import_module('games.'+gameName).Game
 
 	stopChampionship, getState = championship()
 
