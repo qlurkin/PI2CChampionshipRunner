@@ -57,7 +57,7 @@ def finalizeSubscription(address, name, matricules):
 		clients.add(address, name, matricules)
 
 
-def runMatch(addresses, postState): 
+def runMatch(Game, addresses, postState):
 	players = []
 	for i in range(len(addresses)):
 		players.append(clients.get(addresses[i]))
@@ -182,7 +182,7 @@ def listenForRequests(port):
 
 	return stop
 
-def championship():
+def championship(Game):
 	running = True
 	state = None
 
@@ -195,7 +195,7 @@ def championship():
 		while running:
 			players = clients.getMatch()
 			if players is not None:
-				winner, badMoves = runMatch(players, postState)
+				winner, badMoves = runMatch(Game, players, postState)
 				for player, count in enumerate(badMoves):
 					clients.addBadMoves(players[player], count)
 				if winner is None:
@@ -224,7 +224,7 @@ def championship():
 def formatClient(client):
 	return '{}: {}'.format(client['name'], client['points'])
 
-def main(getState):
+def main(getState, render):
 	pygame.init()
 	import graphics
 	screen = pygame.display.set_mode(graphics.screenSize)
@@ -240,9 +240,10 @@ def main(getState):
 				return
 
 		state = getState()
+		stateImage = render(state)
 		participants = clients.getAll()
 
-		surface = graphics.render(state, participants)
+		surface = graphics.render(state, participants, stateImage)
 
 		screen.blit(surface, (0, 0))
 		pygame.display.flip()
@@ -260,12 +261,13 @@ if __name__ == '__main__':
 
 	stopSubscriptions = listenForRequests(port)
 
-	Game = importlib.import_module('games.'+gameName).Game
+	Game = importlib.import_module('games.{}.game'.format(gameName)).Game
+	render = importlib.import_module('games.{}.render'.format(gameName)).render
 
-	stopChampionship, getState = championship()
+	stopChampionship, getState = championship(Game)
 
 
-	main(getState)
+	main(getState, render)
 
 	
 	stopSubscriptions()

@@ -15,6 +15,9 @@ playerFont.set_bold(True)
 
 aaText = False
 
+def pilImageToSurface(pilImage):
+	return pygame.image.fromstring(pilImage.tobytes(), pilImage.size, pilImage.mode).convert()
+
 def drawClient(client):
 	res = pygame.Surface((200, 58))
 	res.fill((0, 0, 0))
@@ -34,7 +37,7 @@ def drawClient(client):
 
 	return res
 
-def render(state, clients):
+def render(state, clients, stateImage):
 	res = pygame.Surface(screenSize)
 	res = res.convert()
 	res.fill((0, 0, 0))
@@ -59,5 +62,9 @@ def render(state, clients):
 
 		player2 = playerFont.render(state['players'][1], aaText, (255, 255, 255))
 		res.blit(player1, player1.get_rect(midleft=(center+60, 45)))
+
+		stateSurface = pilImageToSurface(stateImage)
+		stateSurfacePos = stateSurface.get_rect(center=(center, screenSize[1]//2+40))
+		res.blit(stateSurface, stateSurfacePos)
 
 	return res
