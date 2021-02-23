@@ -64,7 +64,7 @@ def render(state, clients, stateImage):
 		res.blit(player1, player1.get_rect(midleft=(center+60, 45)))
 
 		stateSurface = pilImageToSurface(stateImage)
-		stateSurfacePos = stateSurface.get_rect(center=(center, screenSize[1]//2+40))
+		stateSurfacePos = stateSurface.get_rect(center=(center, screenSize[1]//2+30))
 		res.blit(stateSurface, stateSurfacePos)
 
 	return res
