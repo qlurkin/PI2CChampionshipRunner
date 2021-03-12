@@ -150,6 +150,16 @@ def sameLine(direction1, direction2):
 		return True
 	return False
 
+def isWinning(state):
+	toCount = opponent(symbols[state['current']])
+	count = 0
+	for line in state['board']:
+		for case in line:
+			if case == toCount:
+				count += 1
+	return count < 9
+
+
 def Abalone(players):
 	if len(players) != 2:
 		raise game.BadGameInit('Tic Tac Toe must be played by 2 players')
@@ -190,8 +200,9 @@ def Abalone(players):
 		else:
 			state = moveMarbles(state, marbles, move['direction'])
 
-		#check Win and Draw
-
+		if isWinning(state):
+			raise game.GameWin(state['current'], state)
+		
 		state['current'] = (state['current'] + 1) % 2
 		return state
 
