@@ -1,4 +1,5 @@
-from games import game
+from .. import game
+
 import copy
 
 symbols = ['B', 'W']
@@ -199,4 +200,22 @@ def Abalone(players):
 Game = Abalone
 
 if __name__=='__main__':
-	pass
+	def show(state):
+		print('\n'.join([' '.join(line) for line in state['board']]))
+		print()
+
+	state, next = Abalone(['LUR', 'LRG'])
+
+	state['board'][3][3] = 'B'
+	state['board'][4][3] = 'W'
+
+	show(state)
+
+	state = moveMarblesTrain(state, [(0, 3), (1, 3), (2, 3)], 'SW')
+	show(state)
+	state = moveMarblesTrain(state, [(1, 3), (2, 3), (3, 3)], 'SW')
+	show(state)
+	state = moveMarblesTrain(state, [(2, 3), (3, 3), (4, 3)], 'SW')
+	show(state)
+	state = moveMarblesTrain(state, [(3, 3), (4, 3), (5, 3)], 'SW')
+	show(state)
