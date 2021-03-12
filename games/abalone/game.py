@@ -1,13 +1,15 @@
 from games import game
 import copy
 
+symbols = ['B', 'W']
+
 directions = {
-	'NE': ( 0, -1),
-	'SW': ( 0,  1),
+	'NE': (-1,  0),
+	'SW': ( 1,  0),
 	'NW': (-1, -1),
 	'SE': ( 1,  1),
-	 'E': ( 1,  0),
-	 'W': (-1,  0)
+	 'E': ( 0,  1),
+	 'W': ( 0, -1)
 }
 
 opposite = {
@@ -19,7 +21,13 @@ opposite = {
 	'W': 'E'
 }
 
-def areAligned(marbles):
+def getDirectionName(directionTuple):
+	for dirName in directions:
+		if directionTuple == directions[dirName]:
+			return dirName
+	raise game.BadMove('{} is not a direction'.format(directionTuple))
+
+def computeAlignement(marbles):
 	marbles = sorted(marbles, key=lambda L: L[0]*9+L[1])
 	D = set()
 	for i in range(len(marbles)-1):
@@ -27,40 +35,123 @@ def areAligned(marbles):
 		if direction not in directions.values():
 			return False
 		D.add(direction)
-	return len(D) < 2, D[0].pop() if len(D) == 1 else None
+	return getDirectionName(D[0].pop()) if len(D) == 1 else None
 
-def validate(move):
+def checkMarbles(state, move):
 	marbles = move['marbles']
+	color = symbols[state['current']]
 	if not 0 < len(marbles) < 4:
 		raise game.BadMove('You can only move 1, 2, or 3 marbles')
-	
-	aligned, marblesDir = areAligned(marbles)
-	if not aligned:
-		raise game.BadMove('The marbles you want to move must be aligned')
 
-	if len(marbles) == 1:
+	for pos in marbles:
+		if getColor(state, pos) != color:
+			raise game.BadMove('Marble {} is not yours'.format(pos))
+		
+def isOnBoard(pos):
+	l, c = pos
+	if min(pos) < 0:
+		return False
+	if max(pos) > 8:
+		return False
+	if abs(c-l) >= 5:
+		return False
+	return True
+
+def addDirection(pos, direction):
+	D = directions[direction]
+	return (pos[0] + D[0], pos[1] + D[1])
+
+def moveOneMarble(state, pos, direction):
+	li, ci = pos
+	ld, cd = addDirection(pos, direction)
+	color = getColor(state, pos)
+	try:
+		destStatus = getStatus(state, (ld, cd))
+	except:
+		destStatus = 'X'
+	
+	if color != 'W' and color != 'B':
+		raise game.BadMove('There is no marble here {}'.format(pos))
+	if destStatus == 'W' or destStatus == 'B':
+		raise game.BadMove('There is already a marble here {}'.format((ld, cd)))
+	
+	res = copy.copy(state)
+	res['board'] = copy.copy(res['board'])
+	res['board'][li] = copy.copy(res['board'][li])
+	res['board'][li][ci] = 'E'
+
+	if destStatus == 'E':
+		res['board'][ld] = copy.copy(res['board'][ld])
+		res['board'][ld][cd] = color
+
+	return res
+
+def opponent(color):
+	if color == 'W':
+		return 'B'
+	return 'W'
+
+def getStatus(state, pos):
+	if not isOnBoard(pos):
+		raise game.BadMove('The position {} is outside the board'.format(pos))
+	return state['board'][pos[0]][pos[1]]
+
+def isEmpty(state, pos):
+	return getStatus(state, pos) == 'E'
+
+def isFree(state, pos):
+	if isOnBoard(pos):
+		return isEmpty(state, pos)
+	else:
+		return True
+
+def getColor(state, pos):
+	status = getStatus(state, pos)
+	if status == 'W' or status == 'B':
+		return status
+	raise game.BadMove('There is no marble here {}'.format(pos))
+
+def moveMarblesTrain(state, marbles, direction):
+	if direction in ['E', 'SE', 'SW']:
+		marbles = sorted(marbles, key=lambda L: -(L[0]*9+L[1]))
+	else:
+		marbles = sorted(marbles, key=lambda L: L[0]*9+L[1])
+
+	color = getColor(state, marbles[0])
+
+	pos = addDirection(marbles[0], direction)
+	toPush = []
+	while not isFree(state, pos):
+		if getColor(state, pos) == color:
+			raise game.BadMove('You can\'t push your own marble')
+		toPush.append(pos)
+		pos = addDirection(pos, direction)
 		
 
-def extendBoard(board):
-	eBoard = []
-	eBoard.append(['X']*11)
-	for line in board:
-		eBoard.append(['X'] + line + ['X'])
-	eBoard.append(['X']*11)
+	print(toPush)
 
-	return eBoard
+	if len(toPush) >= len(marbles):
+		raise game.BadMove('you can\'t push {} opponent\'s marbles with {} marbles'.format(len(toPush), len(marbles)))
 
-def normalBoard(eBoard):
-	board = []
-	for i in range(1, 10):
-		board.append(eBoard[i][1:10])
-	return board
+	state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
+
+	return state
+
+def moveMarbles(state, marbles, direction):
+	for pos in marbles:
+		state = moveOneMarble(state, pos, direction)
+	return state
+
+def sameLine(direction1, direction2):
+	if direction1 == direction2:
+		return True
+	if direction1 == opposite(direction2):
+		return True
+	return False
 
 def Abalone(players):
 	if len(players) != 2:
 		raise game.BadGameInit('Tic Tac Toe must be played by 2 players')
-
-	symbols = ['B', 'W']
 
 	state = {
 		'players': players,
@@ -84,7 +175,24 @@ def Abalone(players):
 	# }
 
 	def next(state, move):
-		pass
+		checkMarbles(state, move)
+		marbles = move['marbles']
+		
+		marblesDir = computeAlignement(marbles)
+		if marblesDir is None and len(marbles) > 1:
+			raise game.BadMove('The marbles you want to move must be aligned')
+
+		if len(marbles) == 1:
+			state = moveOneMarble(state, marbles[0], move['direction'])
+		elif sameLine(move['direction'], marblesDir):
+			state = moveMarblesTrain(state, marbles, move['direction'])
+		else:
+			state = moveMarbles(state, marbles, move['direction'])
+
+		#check Win and Draw
+
+		state['current'] = (state['current'] + 1) % 2
+		return state
 
 	return state, next
 
