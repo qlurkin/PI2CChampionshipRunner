@@ -5,6 +5,7 @@ screenSize = (1280, 800)
 
 nameFont = pygame.font.Font('font/Steelflight/Steelflight.ttf', 16)
 nameFont.set_bold(True)
+messageFont = pygame.font.Font('font/Steelflight/Steelflight.ttf', 16)
 pointFont = pygame.font.Font('font/Steelflight/Steelflight.ttf', 24)
 pointFont.set_bold(True)
 dimmedFont = pygame.font.Font('font/Steelflight/Steelflight.ttf', 8)
@@ -37,6 +38,39 @@ def drawClient(client):
 
 	return res
 
+def drawText(text, width, font, color):
+	words = text.split(' ')
+	space = font.size(' ')[0]  # The width of a space.
+	
+	surfaces = {}
+
+	x, y = 0, 0
+	for word in words:
+		word_surface = font.render(word, aaText, color)
+		word_width, word_height = word_surface.get_size()
+		if x + word_width >= width:
+			x = 0  # Reset the x.
+			y += word_height  # Start on new row.
+		surfaces[x, y] = word_surface
+		#surface.blit(word_surface, (x, y))
+		x += word_width + space
+
+	res = pygame.Surface((width, y+word_height))
+	for pos, surface in surfaces.items():
+		res.blit(surface, pos)
+	
+	return res
+
+def drawChat(chat):
+	name = nameFont.render(chat['name'], aaText, (255, 255, 255))
+	msg = drawText(chat['message'], 280, messageFont, (200, 200, 200))
+	msgHeight = msg.get_size()[1]
+	res = pygame.Surface((300, msgHeight + 40))
+	res.blit(name, (10, 10))
+	res.blit(msg, (10, 30))
+
+	return res
+
 def render(state, clients, stateImage):
 	res = pygame.Surface(screenSize)
 	res = res.convert()
@@ -49,6 +83,13 @@ def render(state, clients, stateImage):
 		clientSurface = drawClient(client)
 		res.blit(clientSurface, (0, y))
 		y += clientSurface.get_rect().size[1]
+
+	y = screenSize[1]
+	for chat in reversed(getChats()):
+		chatSurface = drawChat(chat)
+		chatPos = chatSurface.get_rect(bottomleft=(screenSize[0]-299, y))
+		res.blit(chatSurface, chatPos)
+		y -= chatSurface.get_rect().size[1]
 
 	if state is not None:
 		center = screenSize[0]//2-50
