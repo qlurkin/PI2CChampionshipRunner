@@ -18,6 +18,14 @@ Les requêtes contiendront toujours une clé "request" et pourront contenir d'au
 
 Les réponses contiendront toujours une clé "response" et pourront également contenir d'autre clés en fonction de la réponse.
 
+## Démarrer le serveur
+
+```shell
+python server.py <game_name>
+```
+
+Les jeux possibles se trouve dans le répertoire `games`
+
 ## Listes des requêtes / réponse
 
 ### Inscriptions
@@ -50,6 +58,66 @@ réponse en cas d'erreur:
 }
 ```
 
+Cette réponse sera suivie, après 1 seconde, d'une requête ping du serveur au port mentionné dans la requête d'inscription.
+
 ### requête de ping
 
+Cette requête permet au serveur de vérifier qu'un client est toujours à l'écoute.
+
+La requête faite par le serveur au client est:
+
+```json
+{
+   "request": "ping"
+}
+```
+
+Le réponse que le client doit renvoyer est:
+
+```json
+{
+   "response": "pong"
+}
+```
+
+Le serveur fera des requête de ping à tous les clients entre chaque match.
+
 ### requête de coup
+
+Cette requête permet au serveur de demander à un client quelle coup il joue.
+
+La requête faite par le serveur au client est:
+
+```json
+{
+   "request": "play",
+   "lives": 3,
+   "state": state_of_the_game
+}
+```
+
+La clé `lives` vous indique combien de vies il reste au client. Pour chaque match, les clients ont 3 vies. Il perde une vie à chaque fois qu'il joue un coup invalide. Le client perd le match s'il n'a plus de vies.
+
+Le contenu de la clé `state` décrit l'état courant du jeux. Le structure de l'état du jeux dépend du jeux en cours.
+
+La réponse du client est:
+
+```json
+{
+   "response": "move",
+   "move": the_move_played,
+   "message": "Fun message"
+}
+```
+
+s'il veut jouer un coup. La structure du coup dépend du jeu.
+
+Le client peut également abandonner avec la réponse:
+
+```json
+{
+   "response": "giveup",
+}
+```
+
+Abandonner est parfois nécessaire dans certains jeux lorsque plus aucun coup n'est possible.
