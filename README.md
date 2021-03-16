@@ -123,3 +123,5 @@ Le client peut également abandonner avec la réponse:
 ```
 
 Abandonner est parfois nécessaire dans certains jeux lorsque plus aucun coup n'est possible.
+
+La réponse doit généralement être envoyée dans laps de temps précis (3 secondes) sinon elle sera considérée comme un coup invalide et fera perdre une vie.

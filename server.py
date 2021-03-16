@@ -13,14 +13,14 @@ import copy
 from chat import postChat
 
 
-def fetch(address, data):
+def fetch(address, data, timeout=1):
 	'''
 		Request response from address. Data is included in the request
 	'''
 	s = socket.socket()
 	s.connect(address)
 	sendJSON(s, data)
-	response = receiveJSON(s)
+	response = receiveJSON(s, timeout)
 	return response
 
 
@@ -79,11 +79,11 @@ def runMatch(Game, addresses, postState):
 				'request': 'play',
 				'lives': lives[state['current']],
 				'state': state
-			})
+			}, timeout=3)
+			if 'message' in response:
+				postChat(players[state['current']]['name'], response['message'])
 			if response['response'] == 'move':
 				print('{} play:\n{}'.format(players[state['current']]['name'], response['move']))
-				if 'message' in response:
-					postChat(players[state['current']]['name'], response['message'])
 				try:
 					state = next(state, response['move'])
 					postState(state)
