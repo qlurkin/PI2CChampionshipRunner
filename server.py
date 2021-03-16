@@ -10,6 +10,7 @@ import sys
 import clients
 import pygame
 import copy
+from chat import postChat
 
 
 def fetch(address, data):
@@ -67,6 +68,7 @@ def runMatch(Game, addresses, postState):
 	postState(state)
 
 	print('{} VS {}'.format(players[0]['name'], players[1]['name']))
+	postChat('Admin', '{} VS {}'.format(players[0]['name'], players[1]['name']))
 
 	lives = [3, 3]
 	badMoves = lambda : [3 - l for l in lives]
@@ -80,20 +82,28 @@ def runMatch(Game, addresses, postState):
 			})
 			if response['response'] == 'move':
 				print('{} play:\n{}'.format(players[state['current']]['name'], response['move']))
+				if 'message' in response:
+					postChat(players[state['current']]['name'], response['message'])
 				try:
 					state = next(state, response['move'])
 					postState(state)
 				except game.BadMove:
 					print('Bad Move')
+					postChat('Admin', 'This is a Bad Move')
 					lives[state['current']] -= 1
+			if response['response'] == 'giveup':
+				postChat('Admin', '{} give up'.format(players[state['current']]['name']))
+				raise game.GameWin((state['current']+1)%2, state)
 		print(players[state['current']]['name'], 'has done too many Bad Moves')
 		return (state['current']+1)%2, badMoves()
 	except game.GameWin as e:
 		print('Winner', players[e.winner]['name'])
+		postChat('Admin', 'Winner {}'.format(players[state['current']]['name']))
 		postState(e.state)
 		return e.winner, badMoves()
 	except game.GameDraw as e:
 		print('Draw')
+		postChat('Admin', 'Draw')
 		postState(e.state)
 		return None, badMoves()
 

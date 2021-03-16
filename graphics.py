@@ -1,4 +1,4 @@
-from clients import add
+from chat import getChats
 import pygame
 
 screenSize = (1280, 800)

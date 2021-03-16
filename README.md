@@ -112,6 +112,8 @@ La réponse du client est:
 
 s'il veut jouer un coup. La structure du coup dépend du jeu.
 
+La clé `message` est optionnelle.
+
 Le client peut également abandonner avec la réponse:
 
 ```json
