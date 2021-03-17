@@ -1,4 +1,4 @@
-from immutable import List, Map, setValue, append, remove, pop, add, toPython
+from immutable import List, Map, set, append, remove, pop, add, toPython
 from datastore import Datastore
 import json
 
@@ -24,7 +24,7 @@ def addPlayer(name, address, matricules):
 		for opponent in state['players']:
 			state = state.update('matches', append((address, opponent)))
 			state = state.update('matches', append((opponent, address)))
-		state = state.update('players', setValue(address, player))
+		state = state.update('players', set(address, player))
 		return state
 	
 	return fun

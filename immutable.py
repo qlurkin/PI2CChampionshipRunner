@@ -133,7 +133,7 @@ def append(item):
 		return L.append(item)
 	return fun
 
-def setValue(keyOrIndex, value):
+def set(keyOrIndex, value):
 	def fun(ListOrMap):
 		return ListOrMap.set(keyOrIndex, value)
 	return fun
