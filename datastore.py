@@ -1,14 +1,18 @@
 import copy
 
 def Datastore(initial):
-	state = copy.copy(initiale)
+	state = copy.copy(initial)
 
 	def getState():
 		return copy.copy(state)
 
 	def setState(value):
-		state = copy.copy(value)
+		nonlocal state
+		state = value
 
-	return getState, setState
+	def updateState(fun):
+		setState(fun(state))
+
+	return getState, setState, updateState
 
 	
