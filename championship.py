@@ -1,6 +1,7 @@
 import copy
+from match import Match
 
-class Championship:
+class __Championship:
 	def __init__(self):
 		self.__players = ()
 		self.__matches = ()
@@ -37,6 +38,26 @@ class Championship:
 			res.__matches = tuple(matches)
 			return res
 		return self
+
+	def addPlayer(self, player):
+		res = copy.copy(self)
+		for opponent in self.__players:
+			res.__matches = res.__matches + (Match((player, opponent)),)
+			res.__matches = res.__matches + (Match((opponent, player)),)
+		res.__players = res.__players + (player,)
+
+		return res
+
+	def __str__(self):
+		return "Championship"
+
+__TheChampionship = __Championship()
+
+def getChampionship():
+	return __TheChampionship
+
+def updateChampionship(fun):
+	__TheChampionship = fun(__TheChampionship)
 
 # def State(state):
 # 	def setState(fun):
