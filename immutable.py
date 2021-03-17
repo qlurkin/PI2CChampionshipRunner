@@ -16,6 +16,9 @@ class List:
 	def set(self, index, value):
 		return List(self.__items[:index] + (value,) + self.__items[index+1:])
 
+	def update(self, index, fun):
+		return self.set(index, fun(self[index]))
+
 	def __str__(self):
 		return 'List' + str(self.__items)
 
@@ -27,6 +30,9 @@ class List:
 
 	def index(self, item):
 		return self.__items.index(item)
+
+	def __copy__(self):
+		return self
 
 class Map:
 	def __init__(self, *args, **kwargs):
@@ -55,11 +61,17 @@ class Map:
 		map[key] = value
 		return Map(map)
 
+	def update(self, key, fun):
+		return self.set(key, fun(self[key]))
+
 	def __str__(self):
 		return 'Map' + str(self.__map)
 
 	def __contains__(self, key):
 		return key in self.__map
+
+	def __copy__(self):
+		return self
 
 if __name__ == '__main__':
 	print(dir(list()))
@@ -86,3 +98,13 @@ if __name__ == '__main__':
 
 	for k in M:
 		print(k)
+
+def append(item):
+	def fun(L: List):
+		return L.append(item)
+	return fun
+
+def setValue(keyOrIndex, value):
+	def fun(ListOrMap):
+		return ListOrMap.set(keyOrIndex, value)
+	return fun
