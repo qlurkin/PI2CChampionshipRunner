@@ -41,6 +41,12 @@ class List:
 		elem = self[index]
 		return self.remove(index), elem
 
+	def __python__(self):
+		res = []
+		for elem in self:
+			res.append(toPython(elem))
+		return res
+
 
 class Map:
 	def __init__(self, *args, **kwargs):
@@ -90,6 +96,12 @@ class Map:
 		value = self[key]
 		return self.remove(key), value
 
+	def __python__(self):
+		res = {}
+		for key, value in self.items():
+			res[key] = toPython(value)
+		return res
+
 if __name__ == '__main__':
 	print(dir(list()))
 	L = List()
@@ -130,3 +142,20 @@ def remove(keyOrIndex):
 	def fun(ListOrMap):
 		return ListOrMap.remove(keyOrIndex)
 	return fun
+
+def pop(keyOrIndex, callback):
+	def fun(ListOrMap):
+		state, result = ListOrMap.pop(keyOrIndex)
+		callback(result)
+		return state
+	return fun
+
+def add(value):
+	def fun(item):
+		return item + value
+	return fun
+
+def toPython(a):
+	if '__python__' in dir(a):
+		return a.__python__()
+	return a
