@@ -34,6 +34,14 @@ class List:
 	def __copy__(self):
 		return self
 
+	def remove(self, index):
+		return List(self.__items[:index] + self.__items[index+1:])
+
+	def pop(self, index=-1):
+		elem = self[index]
+		return self.remove(index), elem
+
+
 class Map:
 	def __init__(self, *args, **kwargs):
 		self.__map = dict(*args, **kwargs)
@@ -73,6 +81,15 @@ class Map:
 	def __copy__(self):
 		return self
 
+	def remove(self, key):
+		map = dict(self.__map)
+		del(map[key])
+		return Map(map)
+
+	def pop(self, key):
+		value = self[key]
+		return self.remove(key), value
+
 if __name__ == '__main__':
 	print(dir(list()))
 	L = List()
@@ -107,4 +124,9 @@ def append(item):
 def setValue(keyOrIndex, value):
 	def fun(ListOrMap):
 		return ListOrMap.set(keyOrIndex, value)
+	return fun
+
+def remove(keyOrIndex):
+	def fun(ListOrMap):
+		return ListOrMap.remove(keyOrIndex)
 	return fun
