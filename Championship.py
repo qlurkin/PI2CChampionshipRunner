@@ -1,7 +1,8 @@
-from immutable import List, Map, setValue, append, remove
+from immutable import List, Map, setValue, append, remove, pop, add, toPython
 from datastore import Datastore
+import json
 
-getState, setState, updateState = Datastore(Map({
+getState, setState, updateState, subscribe = Datastore(Map({
 	'players': Map(),
 	'matches': List(),
 	'current': None
@@ -28,15 +29,13 @@ def addPlayer(name, address, matricules):
 	
 	return fun
 
-def popMatch():
-	state = getState()
-	matches = state['matches']
-	if len(matches) > 0:
-		res = matches[0]
-		matches = matches[1:]
-	state = state.set('matches', matches)
-	setState(state)
-	return res
+def popMatch(callback):
+	def fun(state):
+		if len(state['matches']) > 1:
+			return state.update('matches', pop(0, callback))
+		callback(None)
+		return state
+	return fun
 
 def getPlayer(address):
 	return getState()['players'][address]
@@ -44,29 +43,51 @@ def getPlayer(address):
 def getAllPlayers():
 	return getState()['players']
 
-def matchWin(addresses, winner):
-	state = getState()
-	
-	for address in addresses:
-		player = getPlayer(address)
-		player = player.set('matchCount', player['matchCount'] + 1)
-		state = state['players'].set(address, player)
+def updatePlayer(address, pfun):
+	def sfun(state):
+		return state.update('players',
+			lambda players: players.update(address, pfun))
+	return sfun
 
-	player = getPlayer(addresses[winner])
-	player = player.set('points', player['points'] + 3)
-	state = state['players'].set(addresses[winner], player)
-	
-	setState(state)
+def addToPlayer(address, key, value):
+	def fun(state):
+		return updatePlayer(address, lambda player: player.update(key, add(value)))(state)
+	return fun
+
+def matchWin(addresses, winner):
+	def fun(state):
+		for address in addresses:
+			state = addToPlayer(address, 'matchCount', 1)(state)
+		state = addToPlayer(address, 'points', 3)(state)
+		return state
+	return fun
 
 def matchDraw(addresses):
-	state = getState()
-	
-	for address in addresses:
-		player = getPlayer(address)
-		player = player.set('matchCount', player['matchCount'] + 1)
-		player = player.set('points', player['points'] + 1)
-		state = state['players'].set(address, player)
-	
-	setState(state)
+	def fun(state):
+		for address in addresses:
+			state = addToPlayer(address, 'matchCount', 1)(state)
+			state = addToPlayer(address, 'points', 1)(state)
+		return state
+	return fun
+
+def addBadMoves(address, count):
+	def fun(state):
+		return addToPlayer(address, 'badMoves', count)(state)
+	return fun
+
+def changePlayerStatus(address, status):
+	def fun(state):
+		return updatePlayer(address, lambda player: player.set('status', status))(state)
+	return fun
 
 
+@subscribe
+def save(state):
+	with open('data.json', 'w', encoding='utf8') as file:
+		json.dump(list(toPython(getAllPlayers()).values()), file, indent='\t')
+
+if __name__ == '__main__':
+	updateState(addPlayer('RANDOM', ('lo', 3000), ['LUR', 'LRG']))
+	updateState(addToPlayer(('lo', 3000), 'points', 10))
+	updateState(changePlayerStatus(('lo', 3000), 'prout'))
+	print(toPython(getAllPlayers()))
