@@ -1,28 +1,10 @@
-from copy import copy
 import socket
-
-from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject
+from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject, fetch
 from threading import Thread, Timer
-import time
 import importlib
-from games import game
 import sys
-import clients
-import pygame
-import copy
-from chat import postChat
-
-
-def fetch(address, data, timeout=1):
-	'''
-		Request response from address. Data is included in the request
-	'''
-	s = socket.socket()
-	s.connect(address)
-	sendJSON(s, data)
-	response = receiveJSON(s, timeout)
-	return response
-
+from championship import Championship, addPlayer, getAllPlayers, getState, changePlayerStatus, updateState, hookRegister
+from graphics import ui
 
 def checkClient(address):
 	'''
@@ -44,9 +26,9 @@ def checkClient(address):
 	return status
 
 def checkAllClient():
-	for client in clients.getAll():
+	for client in getAllPlayers(getState()):
 		status = checkClient(client['address'])
-		clients.changeStatus(client['address'], status)
+		updateState(changePlayerStatus(client['address'], status))
 
 
 def finalizeSubscription(address, name, matricules):
@@ -55,57 +37,7 @@ def finalizeSubscription(address, name, matricules):
 	'''
 	status = checkClient(address)
 	if status == 'online':
-		clients.add(address, name, matricules)
-
-
-def runMatch(Game, addresses, postState):
-	players = []
-	for i in range(len(addresses)):
-		players.append(clients.get(addresses[i]))
-
-	state, next = Game(list(map(lambda P: P['name'], players)))
-	state['current'] = 0
-	postState(state)
-
-	print('{} VS {}'.format(players[0]['name'], players[1]['name']))
-	postChat('Admin', '{} VS {}'.format(players[0]['name'], players[1]['name']))
-
-	lives = [3, 3]
-	badMoves = lambda : [3 - l for l in lives]
-	try:
-		while all([l != 0 for l in lives]):
-			print('Request move from {}'.format(players[state['current']]['name']))
-			response = fetch(players[state['current']]['address'], {
-				'request': 'play',
-				'lives': lives[state['current']],
-				'state': state
-			}, timeout=3)
-			if 'message' in response:
-				postChat(players[state['current']]['name'], response['message'])
-			if response['response'] == 'move':
-				print('{} play:\n{}'.format(players[state['current']]['name'], response['move']))
-				try:
-					state = next(state, response['move'])
-					postState(state)
-				except game.BadMove:
-					print('Bad Move')
-					postChat('Admin', 'This is a Bad Move')
-					lives[state['current']] -= 1
-			if response['response'] == 'giveup':
-				postChat('Admin', '{} give up'.format(players[state['current']]['name']))
-				raise game.GameWin((state['current']+1)%2, state)
-		print(players[state['current']]['name'], 'has done too many Bad Moves')
-		return (state['current']+1)%2, badMoves()
-	except game.GameWin as e:
-		print('Winner', players[e.winner]['name'])
-		postChat('Admin', 'Winner {}'.format(players[state['current']]['name']))
-		postState(e.state)
-		return e.winner, badMoves()
-	except game.GameDraw as e:
-		print('Draw')
-		postChat('Admin', 'Draw')
-		postState(e.state)
-		return None, badMoves()
+		updateState(addPlayer(name, address, matricules))
 
 
 def startSubscription(client, address, request):
@@ -192,72 +124,8 @@ def listenForRequests(port):
 
 	return stop
 
-def championship(Game):
-	running = True
-	state = None
-
-	def postState(newState):
-		nonlocal state
-		state = copy.deepcopy(newState)
-		time.sleep(1)
-
-	def run():
-		while running:
-			players = clients.getMatch()
-			if players is not None:
-				winner, badMoves = runMatch(Game, players, postState)
-				for player, count in enumerate(badMoves):
-					clients.addBadMoves(players[player], count)
-				if winner is None:
-					clients.matchDraw(players)
-				else:
-					clients.matchWin(players, winner)
-				postState(None)
-				checkAllClient()
-				clients.save()
-			else:
-				time.sleep(1)
-	
-	championshipThread = Thread(target=run, daemon=True)
-	championshipThread.start()
-
-	def stop():
-		nonlocal running
-		running = False
-		championshipThread.join()
-
-	def getState():
-		return state
-
-	return stop, getState
-
 def formatClient(client):
 	return '{}: {}'.format(client['name'], client['points'])
-
-def main(getState, render):
-	pygame.init()
-	import graphics
-	screen = pygame.display.set_mode(graphics.screenSize)
-	pygame.display.set_caption('{} Championship'.format(gameName.capitalize()))
-
-	clock = pygame.time.Clock()
-	font = pygame.font.Font(None, 36)
-
-	while True:
-		clock.tick(60)
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				return
-
-		state = getState()
-		stateImage = render(state)
-		participants = clients.getAll()
-
-		surface = graphics.render(state, participants, stateImage)
-
-		screen.blit(surface, (0, 0))
-		pygame.display.flip()
-
 
 if __name__ == '__main__':
 	args = sys.argv[1:]
@@ -274,11 +142,11 @@ if __name__ == '__main__':
 	Game = importlib.import_module('games.{}.game'.format(gameName)).Game
 	render = importlib.import_module('games.{}.render'.format(gameName)).render
 
-	stopChampionship, getState = championship(Game)
+	hookRegister('matchEnd', checkAllClient)
 
+	stopChampionship = Championship(Game)
 
-	main(getState, render)
+	ui(gameName, render)
 
-	
 	stopSubscriptions()
 	stopChampionship()

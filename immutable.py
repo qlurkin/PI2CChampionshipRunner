@@ -22,6 +22,9 @@ class List:
 	def __str__(self):
 		return 'List' + str(self.__items)
 
+	def __repr__(self):
+		return str(self)
+
 	def __add__(self, other):
 		return List(self.__items + other.__items)
 
@@ -80,6 +83,9 @@ class Map:
 
 	def __str__(self):
 		return 'Map' + str(self.__map)
+
+	def __repr__(self):
+		return str(self)
 
 	def __contains__(self, key):
 		return key in self.__map

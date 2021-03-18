@@ -7,10 +7,11 @@ from jsonNetwork import fetch
 from games import game
 from threading import Thread, Timer
 
-getState, setState, updateState, subscribe = Datastore(Map({
+getState, updateState, subscribe = Datastore(Map({
 	'players': Map(),
 	'matches': List(),
-	'matchState': None
+	'matchState': None,
+	'matchResults': List()
 }))
 
 hooks = {
@@ -18,7 +19,7 @@ hooks = {
 }
 
 def hookRegister(hook, fun):
-	hooks[hook] = fun
+	hooks[hook].append(fun)
 
 def __runHook(hook):
 	for fun in hooks[hook]:
@@ -45,13 +46,10 @@ def addPlayer(name, address, matricules):
 	
 	return fun
 
-def popMatch(callback):
-	def fun(state):
-		if len(state['matches']) > 1:
-			return state.update('matches', pop(0, callback))
-		callback(None)
-		return state
-	return fun
+def removeFirstMatch():
+	def removeFirstMatch(state):
+		return state.update('matches', remove(0))
+	return removeFirstMatch
 
 def getPlayer(state, address):
 	return state['players'][address]
@@ -60,52 +58,64 @@ def getAllPlayers(state):
 	return List(state['players'].values())
 
 def updatePlayer(address, pfun):
-	def sfun(state):
+	def updatePlayer(state):
 		return state.update('players',
 			lambda players: players.update(address, pfun))
-	return sfun
+	return updatePlayer
 
 def addToPlayer(address, key, value):
-	def fun(state):
+	def addToPlayer(state):
 		return updatePlayer(address, lambda player: player.update(key, add(value)))(state)
-	return fun
+	return addToPlayer
 
 def matchWin(addresses, winner):
-	def fun(state):
+	def matchWin(state):
 		for address in addresses:
 			state = addToPlayer(address, 'matchCount', 1)(state)
-		state = addToPlayer(address, 'points', 3)(state)
+		state = addToPlayer(addresses[winner], 'points', 3)(state)
 		return state
-	return fun
+	return matchWin
 
 def matchDraw(addresses):
-	def fun(state):
+	def matchDraw(state):
 		for address in addresses:
 			state = addToPlayer(address, 'matchCount', 1)(state)
 			state = addToPlayer(address, 'points', 1)(state)
 		return state
-	return fun
+	return matchDraw
 
 def addBadMoves(address, count):
-	def fun(state):
+	def addBadMoves(state):
 		return addToPlayer(address, 'badMoves', count)(state)
-	return fun
+	return addBadMoves
 
 def changePlayerStatus(address, status):
-	def fun(state):
+	def changePlayerStatus(state):
 		return updatePlayer(address, lambda player: player.set('status', status))(state)
-	return fun
+	return changePlayerStatus
+
+def addMatchResult(addresses, winner, badMoves):
+	def addMatchResult(state):
+		return state.update('matchResults', append(Map({
+			'players': addresses,
+			'badMoves': badMoves,
+			'winner': winner
+		})))
+	return addMatchResult
 
 
 @subscribe
 def save(state):
 	with open('data.json', 'w', encoding='utf8') as file:
-		json.dump(toPython(getAllPlayers(state)), file, indent='\t')
+		json.dump({
+			'players': toPython(getAllPlayers(state)),
+			'results': toPython(state['matchResults'])
+		}, file, indent='\t')
 
 def setMatchState(matchState):
-	def fun(state):
+	def setMatchState(state):
 		return state.set('matchState', matchState)
-	return fun
+	return setMatchState
 
 
 def Championship(Game):
@@ -116,8 +126,6 @@ def Championship(Game):
 		time.sleep(0.5)
 
 	def playMatch(addresses):
-		if addresses is None:
-			time.sleep(1)
 		players = List()
 		for address in addresses:
 			players = players.append(getPlayer(getState(), address))
@@ -130,7 +138,8 @@ def Championship(Game):
 			if winner is None:
 				updateState(matchDraw(addresses))
 			else:
-				updatePlayer(matchWin(addresses, winner))
+				updateState(matchWin(addresses, winner))
+			updateState(addMatchResult(addresses, winner, badMoves()))
 			postMatchState(None)
 
 		matchState, next = Game(list(map(lambda player: player['name'], players)))
@@ -175,9 +184,16 @@ def Championship(Game):
 			matchResult(None)
 
 	def run():
+		print("Start Championship")
 		while running:
-			updateState(popMatch(playMatch))
-			__runHook('matchEnd')
+			matches = getState()['matches']
+			if len(matches) > 0:
+				addresses = matches[0]
+				updateState(removeFirstMatch())
+				playMatch(addresses)
+				__runHook('matchEnd')
+			else:
+				time.sleep(1)
 	
 	championshipThread = Thread(target=run, daemon=True)
 	championshipThread.start()

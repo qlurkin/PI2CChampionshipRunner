@@ -1,5 +1,8 @@
 from chat import getChats
 import pygame
+from championship import getState, getAllPlayers
+
+pygame.init()
 
 screenSize = (1280, 800)
 
@@ -71,7 +74,9 @@ def drawChat(chat):
 
 	return res
 
-def render(state, clients, stateImage):
+def render(state, stateImage):
+	players = getAllPlayers(state)
+	matchState = state['matchState']
 	res = pygame.Surface(screenSize)
 	res = res.convert()
 	res.fill((0, 0, 0))
@@ -79,7 +84,7 @@ def render(state, clients, stateImage):
 	pygame.draw.line(res, (255, 255, 255), (screenSize[0]-300, 0), (screenSize[0]-300, screenSize[1]))
 
 	y = 0
-	for i, client in enumerate(sorted(clients, key = lambda cl: -cl['points'])):
+	for i, client in enumerate(sorted(players, key = lambda cl: -cl['points'])):
 		clientSurface = drawClient(client)
 		res.blit(clientSurface, (0, y))
 		y += clientSurface.get_rect().size[1]
@@ -91,17 +96,17 @@ def render(state, clients, stateImage):
 		res.blit(chatSurface, chatPos)
 		y -= chatSurface.get_rect().size[1]
 
-	if state is not None:
+	if matchState is not None:
 		center = screenSize[0]//2-50
 		vs = vsFont.render('VS', aaText, (255, 0, 0))
 		res.blit(vs, vs.get_rect(midtop=(center+5, 15)))
 		vs = vsFont.render('VS', aaText, (255, 255, 0))
 		res.blit(vs, vs.get_rect(midtop=(center, 10)))
 
-		player1 = playerFont.render(state['players'][0], aaText, (255, 255, 255))
+		player1 = playerFont.render(matchState['players'][0], aaText, (255, 255, 255))
 		res.blit(player1, player1.get_rect(midright=(center-60, 45)))
 
-		player2 = playerFont.render(state['players'][1], aaText, (255, 255, 255))
+		player2 = playerFont.render(matchState['players'][1], aaText, (255, 255, 255))
 		res.blit(player1, player1.get_rect(midleft=(center+60, 45)))
 
 		stateSurface = pilImageToSurface(stateImage)
@@ -109,3 +114,20 @@ def render(state, clients, stateImage):
 		res.blit(stateSurface, stateSurfacePos)
 
 	return res
+
+def ui(gameName, gameRender):
+	screen = pygame.display.set_mode(screenSize)
+	pygame.display.set_caption('{} Championship'.format(gameName.capitalize()))
+
+	clock = pygame.time.Clock()
+
+	while True:
+		clock.tick(60)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				return
+
+		surface = render(getState(), gameRender(getState()['matchState']))
+
+		screen.blit(surface, (0, 0))
+		pygame.display.flip()
