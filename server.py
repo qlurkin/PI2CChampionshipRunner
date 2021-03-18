@@ -10,7 +10,7 @@ def checkClient(address):
 	'''
 		Ping client
 	'''
-	print('checking client {}'.format(address))
+	print('checking client {}:'.format(address), end=' ')
 	try:
 		response = fetch(address, {
 			'request': 'ping'

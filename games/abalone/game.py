@@ -127,9 +127,6 @@ def moveMarblesTrain(state, marbles, direction):
 			raise game.BadMove('You can\'t push your own marble')
 		toPush.append(pos)
 		pos = addDirection(pos, direction)
-		
-
-	print(toPush)
 
 	if len(toPush) >= len(marbles):
 		raise game.BadMove('you can\'t push {} opponent\'s marbles with {} marbles'.format(len(toPush), len(marbles)))

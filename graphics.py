@@ -96,8 +96,9 @@ def render(state, stateImage):
 		res.blit(chatSurface, chatPos)
 		y -= chatSurface.get_rect().size[1]
 
+	center = screenSize[0]//2-50
+	
 	if matchState is not None:
-		center = screenSize[0]//2-50
 		vs = vsFont.render('VS', aaText, (255, 0, 0))
 		res.blit(vs, vs.get_rect(midtop=(center+5, 15)))
 		vs = vsFont.render('VS', aaText, (255, 255, 0))
@@ -109,6 +110,7 @@ def render(state, stateImage):
 		player2 = playerFont.render(matchState['players'][1], aaText, (255, 255, 255))
 		res.blit(player1, player1.get_rect(midleft=(center+60, 45)))
 
+	if stateImage is not None:
 		stateSurface = pilImageToSurface(stateImage)
 		stateSurfacePos = stateSurface.get_rect(center=(center, screenSize[1]//2+30))
 		res.blit(stateSurface, stateSurfacePos)

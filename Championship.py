@@ -123,7 +123,7 @@ def Championship(Game):
 
 	def postMatchState(matchState):
 		updateState(setMatchState(matchState))
-		time.sleep(0.5)
+		time.sleep(0.2)
 
 	def playMatch(addresses):
 		players = List()
@@ -164,21 +164,18 @@ def Championship(Game):
 						matchState = next(matchState, response['move'])
 						postMatchState(matchState)
 					except game.BadMove:
-						print('Bad Move')
 						postChat('Admin', 'This is a Bad Move')
 						lives[matchState['current']] -= 1
 				if response['response'] == 'giveup':
 					postChat('Admin', '{} give up'.format(players[matchState['current']]['name']))
 					raise game.GameWin((matchState['current']+1)%2, matchState)
-			print(players[matchState['current']]['name'], 'has done too many Bad Moves')
+			postChat('Admin', '{} has done too many Bad Moves'.format(players[matchState['current']]['name']))
 			matchResult((matchState['current']+1)%2)
 		except game.GameWin as e:
-			print('Winner', players[e.winner]['name'])
 			postChat('Admin', 'Winner {}'.format(players[matchState['current']]['name']))
 			postMatchState(e.state)
 			matchResult(e.winner)
 		except game.GameDraw as e:
-			print('Draw')
 			postChat('Admin', 'Draw')
 			postMatchState(e.state)
 			matchResult(None)

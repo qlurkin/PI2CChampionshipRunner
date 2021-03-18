@@ -12,15 +12,15 @@ SIZE = (WIDTH, HEIGHT)
 LINEWIDTH = 5
 
 def render(state):
-	if state is None:
-		return
-
 	res = Image.new('RGBA', SIZE, (50, 50, 50))
 	draw = ImageDraw.Draw(res)
 	draw.line([(WIDTH//3, 0), (WIDTH//3, HEIGHT)], (200, 200, 200), LINEWIDTH)
 	draw.line([(2*WIDTH//3, 0), (2*WIDTH//3, HEIGHT)], (200, 200, 200), LINEWIDTH)
 	draw.line([(0, HEIGHT//3), (WIDTH, HEIGHT//3)], (200, 200, 200), LINEWIDTH)
 	draw.line([(0, 2*HEIGHT//3), (WIDTH, 2*HEIGHT//3)], (200, 200, 200), LINEWIDTH)
+
+	if state is None:
+		return res
 
 	startx = WIDTH//6 - cross.size[0]//2
 	starty = HEIGHT//6 - cross.size[1]//2
