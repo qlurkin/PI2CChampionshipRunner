@@ -31,3 +31,13 @@ def receiveJSON(socket, timeout = 1):
 			if time.time() - start > timeout:
 				raise s.timeout()
 	return data
+
+def fetch(address, data, timeout=1):
+	'''
+		Request response from address. Data is included in the request
+	'''
+	socket = s.socket()
+	socket.connect(address)
+	sendJSON(socket, data)
+	response = receiveJSON(socket, timeout)
+	return response
