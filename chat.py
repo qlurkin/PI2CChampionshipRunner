@@ -11,10 +11,8 @@ def postChat(name, message):
 		"message": message
 	})
 
-	print({
-		"name": name,
-		"message": message
-	})
+	if name == 'Admin':
+		print(message)
 
 	if len(__chats) > 20:
 		del(__chats[0])
