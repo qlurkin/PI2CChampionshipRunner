@@ -6,4 +6,4 @@ getMatch, updateMatch, subscribe = Datastore(None)
 
 def postMatchState(matchState):
 	updateMatch(lambda state: matchState)
-	time.sleep(0.016)
+	#time.sleep(0.2)

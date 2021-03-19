@@ -94,14 +94,15 @@ def changePlayerStatus(address, status):
 		return updatePlayer(address, lambda player: player.set('status', status))(state)
 	return changePlayerStatus
 
-def addMatchResult(addresses, winner, badMoves, moveCount, playerTimes):
+def addMatchResult(addresses, winner, badMoves, moveCount, playerTimes, totalTime):
 	def addMatchResult(state):
 		return state.update('matchResults', append(Map({
 			'players': addresses,
 			'badMoves': badMoves,
 			'winner': winner,
 			'moveCount': moveCount,
-			'playerTimes': playerTimes
+			'playerTimes': playerTimes,
+			'totalTime': totalTime
 		})))
 	return addMatchResult
 
@@ -130,7 +131,7 @@ def Championship(Game):
 				updateState(matchDraw(addresses))
 			else:
 				updateState(matchWin(addresses, winner))
-			updateState(addMatchResult(addresses, winner, badMoves(), moveCount, playerTimes))
+			updateState(addMatchResult(addresses, winner, badMoves(), moveCount, playerTimes, time.time() - totalStart))
 			postMatchState(None)
 
 		matchState, next = Game(list(map(lambda player: player['name'], players)))
@@ -140,6 +141,7 @@ def Championship(Game):
 		postChat('Admin', '{} VS {}'.format(players[0]['name'], players[1]['name']))
 		playerTimes = [0, 0]
 		moveCount = 0
+		totalStart = time.time()
 		try:
 			while all([l != 0 for l in lives]):
 				if not running:
