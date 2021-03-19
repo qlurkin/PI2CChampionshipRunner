@@ -34,9 +34,9 @@ def computeAlignement(marbles):
 	for i in range(len(marbles)-1):
 		direction = (marbles[i+1][0]-marbles[i][0], marbles[i+1][1]-marbles[i][1])
 		if direction not in directions.values():
-			return False
+			return None
 		D.add(direction)
-	return getDirectionName(D[0].pop()) if len(D) == 1 else None
+	return getDirectionName(D.pop()) if len(D) == 1 else None
 
 def checkMarbles(state, move):
 	marbles = move['marbles']
@@ -143,7 +143,7 @@ def moveMarbles(state, marbles, direction):
 def sameLine(direction1, direction2):
 	if direction1 == direction2:
 		return True
-	if direction1 == opposite(direction2):
+	if direction1 == opposite[direction2]:
 		return True
 	return False
 
@@ -183,6 +183,9 @@ def Abalone(players):
 	# }
 
 	def next(state, move):
+		if move is None:
+			raise game.BadMove('None is not a valid move')
+
 		checkMarbles(state, move)
 		marbles = move['marbles']
 		

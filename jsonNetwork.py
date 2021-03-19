@@ -5,6 +5,9 @@ import time
 class NotAJSONObject(Exception):
 	pass
 
+class Timeout(Exception):
+	pass
+
 def sendJSON(socket, obj):
 	message = json.dumps(obj)
 	if message[0] != '{':
@@ -29,7 +32,7 @@ def receiveJSON(socket, timeout = 1):
 			finished = True
 		except json.JSONDecodeError:
 			if time.time() - start > timeout:
-				raise s.timeout()
+				raise Timeout()
 	return data
 
 def fetch(address, data, timeout=1):

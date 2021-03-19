@@ -1,5 +1,5 @@
 import socket
-from jsonNetwork import sendJSON, receiveJSON, NotAJSONObject, fetch
+from jsonNetwork import Timeout, sendJSON, receiveJSON, NotAJSONObject, fetch
 from threading import Thread, Timer
 import importlib
 import sys
@@ -72,7 +72,7 @@ def processRequest(client, address):
 		else:
 			raise ValueError('Unknown request \'{}\''.format(request['request']))
 
-	except socket.timeout:
+	except Timeout:
 		sendJSON(client, {
 			'response': 'error',
 			'error': 'transmition take too long'

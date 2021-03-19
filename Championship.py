@@ -3,7 +3,7 @@ from datastore import Datastore
 import json
 import time
 from chat import postChat
-from jsonNetwork import fetch
+from jsonNetwork import fetch, Timeout
 from games import game
 from threading import Thread, Timer
 
@@ -151,24 +151,28 @@ def Championship(Game):
 		try:
 			while all([l != 0 for l in lives]):
 				print('Request move from {}'.format(players[matchState['current']]['name']))
-				response = fetch(players[matchState['current']]['address'], {
-					'request': 'play',
-					'lives': lives[matchState['current']],
-					'state': matchState
-				}, timeout=3)
-				if 'message' in response:
-					postChat(players[matchState['current']]['name'], response['message'])
-				if response['response'] == 'move':
-					print('{} play:\n{}'.format(players[matchState['current']]['name'], response['move']))
-					try:
-						matchState = next(matchState, response['move'])
-						postMatchState(matchState)
-					except game.BadMove:
-						postChat('Admin', 'This is a Bad Move')
-						lives[matchState['current']] -= 1
-				if response['response'] == 'giveup':
-					postChat('Admin', '{} give up'.format(players[matchState['current']]['name']))
-					raise game.GameWin((matchState['current']+1)%2, matchState)
+				try:
+					response = fetch(players[matchState['current']]['address'], {
+						'request': 'play',
+						'lives': lives[matchState['current']],
+						'state': matchState
+					}, timeout=3)
+					if 'message' in response:
+						postChat(players[matchState['current']]['name'], response['message'])
+					if response['response'] == 'move':
+						print('{} play:\n{}'.format(players[matchState['current']]['name'], response['move']))
+						try:
+							matchState = next(matchState, response['move'])
+							postMatchState(matchState)
+						except game.BadMove:
+							postChat('Admin', 'This is a Bad Move')
+							lives[matchState['current']] -= 1
+					if response['response'] == 'giveup':
+						postChat('Admin', '{} give up'.format(players[matchState['current']]['name']))
+						raise game.GameWin((matchState['current']+1)%2, matchState)
+				except Timeout:
+					postChat('Admin', 'You take too long to respond')
+					lives[matchState['current']] -= 1
 			postChat('Admin', '{} has done too many Bad Moves'.format(players[matchState['current']]['name']))
 			matchResult((matchState['current']+1)%2)
 		except game.GameWin as e:
