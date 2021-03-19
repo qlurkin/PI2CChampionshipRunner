@@ -5,12 +5,12 @@ import time
 from chat import postChat
 from jsonNetwork import fetch, Timeout
 from games import game
-from threading import Thread, Timer
+from threading import Thread
+from match import postMatchState
 
 getState, updateState, subscribe = Datastore(Map({
 	'players': Map(),
 	'matches': List(),
-	'matchState': None,
 	'matchResults': List()
 }))
 
@@ -94,15 +94,16 @@ def changePlayerStatus(address, status):
 		return updatePlayer(address, lambda player: player.set('status', status))(state)
 	return changePlayerStatus
 
-def addMatchResult(addresses, winner, badMoves):
+def addMatchResult(addresses, winner, badMoves, moveCount, playerTimes):
 	def addMatchResult(state):
 		return state.update('matchResults', append(Map({
 			'players': addresses,
 			'badMoves': badMoves,
-			'winner': winner
+			'winner': winner,
+			'moveCount': moveCount,
+			'playerTimes': playerTimes
 		})))
 	return addMatchResult
-
 
 @subscribe
 def save(state):
@@ -112,18 +113,8 @@ def save(state):
 			'results': toPython(state['matchResults'])
 		}, file, indent='\t')
 
-def setMatchState(matchState):
-	def setMatchState(state):
-		return state.set('matchState', matchState)
-	return setMatchState
-
-
 def Championship(Game):
 	running = True
-
-	def postMatchState(matchState):
-		updateState(setMatchState(matchState))
-		time.sleep(0.2)
 
 	def playMatch(addresses):
 		players = List()
@@ -139,7 +130,7 @@ def Championship(Game):
 				updateState(matchDraw(addresses))
 			else:
 				updateState(matchWin(addresses, winner))
-			updateState(addMatchResult(addresses, winner, badMoves()))
+			updateState(addMatchResult(addresses, winner, badMoves(), moveCount, playerTimes))
 			postMatchState(None)
 
 		matchState, next = Game(list(map(lambda player: player['name'], players)))
@@ -147,19 +138,26 @@ def Championship(Game):
 		postMatchState(matchState)
 
 		postChat('Admin', '{} VS {}'.format(players[0]['name'], players[1]['name']))
-
+		playerTimes = [0, 0]
+		moveCount = 0
 		try:
 			while all([l != 0 for l in lives]):
+				if not running:
+					return
 				print('Request move from {}'.format(players[matchState['current']]['name']))
 				try:
+					start = time.time()
 					response = fetch(players[matchState['current']]['address'], {
 						'request': 'play',
 						'lives': lives[matchState['current']],
 						'state': matchState
 					}, timeout=3)
+					playerTime = time.time() - start
 					if 'message' in response:
 						postChat(players[matchState['current']]['name'], response['message'])
 					if response['response'] == 'move':
+						moveCount += 1
+						playerTimes[matchState['current']] += playerTime
 						print('{} play:\n{}'.format(players[matchState['current']]['name'], response['move']))
 						try:
 							matchState = next(matchState, response['move'])
@@ -172,6 +170,9 @@ def Championship(Game):
 						raise game.GameWin((matchState['current']+1)%2, matchState)
 				except Timeout:
 					postChat('Admin', 'You take too long to respond')
+					lives[matchState['current']] -= 1
+				except OSError:
+					postChat('Admin', '{} unavailable'.format(players[matchState['current']]['name']))
 					lives[matchState['current']] -= 1
 			postChat('Admin', '{} has done too many Bad Moves'.format(players[matchState['current']]['name']))
 			matchResult((matchState['current']+1)%2)

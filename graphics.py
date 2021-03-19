@@ -1,6 +1,7 @@
 from chat import getChats
 import pygame
 from championship import getState, getAllPlayers
+from match import getMatch
 
 pygame.init()
 
@@ -76,7 +77,7 @@ def drawChat(chat):
 
 def render(state, stateImage):
 	players = getAllPlayers(state)
-	matchState = state['matchState']
+	matchState = getMatch()
 	res = pygame.Surface(screenSize)
 	res = res.convert()
 	res.fill((0, 0, 0))
@@ -108,7 +109,7 @@ def render(state, stateImage):
 		res.blit(player1, player1.get_rect(midright=(center-60, 45)))
 
 		player2 = playerFont.render(matchState['players'][1], aaText, (255, 255, 255))
-		res.blit(player1, player1.get_rect(midleft=(center+60, 45)))
+		res.blit(player2, player2.get_rect(midleft=(center+60, 45)))
 
 	if stateImage is not None:
 		stateSurface = pilImageToSurface(stateImage)
@@ -129,7 +130,7 @@ def ui(gameName, gameRender):
 			if event.type == pygame.QUIT:
 				return
 
-		surface = render(getState(), gameRender(getState()['matchState']))
+		surface = render(getState(), gameRender(getMatch()))
 
 		screen.blit(surface, (0, 0))
 		pygame.display.flip()
