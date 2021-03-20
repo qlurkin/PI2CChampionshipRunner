@@ -25,6 +25,11 @@ def __runHook(hook):
 	for fun in hooks[hook]:
 		fun()
 
+def addMatch(addresses):
+	def addMatch(state):
+		return state.update('matches', append(addresses))
+	return addMatch
+
 def addPlayer(name, address, matricules):
 	
 	player = Map({
@@ -37,14 +42,16 @@ def addPlayer(name, address, matricules):
 		'matricules': matricules
 	})
 
-	def fun(state):
-		for opponent in state['players']:
-			state = state.update('matches', append((address, opponent)))
-			state = state.update('matches', append((opponent, address)))
-		state = state.update('players', set(address, player))
+	def addPlayer(state):
+		if address in state['players']:
+			state = updatePlayer(address, lambda player: player.set('name', name).set('status', 'online').set('matricules', matricules))(state)
+		else:
+			for opponent in state['players']:
+				state = addMatch((address, opponent))(state)
+				state = addMatch((opponent, address))(state)
+			state = state.update('players', set(address, player))
 		return state
-	
-	return fun
+	return addPlayer
 
 def removeFirstMatch():
 	def removeFirstMatch(state):
@@ -194,7 +201,11 @@ def Championship(Game):
 			if len(matches) > 0:
 				addresses = matches[0]
 				updateState(removeFirstMatch())
-				playMatch(addresses)
+				if all(map(lambda address: getPlayer(getState(), address)['status'] == 'online', addresses)):
+					playMatch(addresses)
+				else:
+					postChat('Admin', 'Some player are offline. Report Match')
+					updateState(addMatch(addresses))
 				__runHook('matchEnd')
 			else:
 				time.sleep(1)
