@@ -28,7 +28,10 @@ def drawClient(client):
 	res.fill((0, 0, 0))
 	pygame.draw.line(res, (255, 255, 255), (0, 57), (200, 57))
 
-	name = nameFont.render(client['name'], aaText, (255, 255, 255))
+	nameColor = (255, 255, 255)
+	if client['status'] != 'online':
+		nameColor = (255, 0, 0)
+	name = nameFont.render(client['name'], aaText, nameColor)
 	res.blit(name, (10, 10))
 
 	address = dimmedFont.render('{}:{}'.format(*(client['address'])), aaText, (100, 100, 100))
