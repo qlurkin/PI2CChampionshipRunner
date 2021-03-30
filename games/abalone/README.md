@@ -40,3 +40,5 @@ The `board` is a list of lines. `'W'` stands for White, `'B'` for Black, `'E'` f
 `marbles` list the marbles you want to move. Coordinates are `[line, column]`.
 
 `direction` is the direction of he move.
+
+You can pass your turn by sending an empty marbles list.

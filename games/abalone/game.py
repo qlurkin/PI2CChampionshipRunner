@@ -41,7 +41,7 @@ def computeAlignement(marbles):
 def checkMarbles(state, move):
 	marbles = move['marbles']
 	color = symbols[state['current']]
-	if not 0 < len(marbles) < 4:
+	if not 0 <= len(marbles) < 4:
 		raise game.BadMove('You can only move 1, 2, or 3 marbles')
 
 	for pos in marbles:
@@ -188,20 +188,21 @@ def Abalone(players):
 
 		checkMarbles(state, move)
 		marbles = move['marbles']
-		
-		marblesDir = computeAlignement(marbles)
-		if marblesDir is None and len(marbles) > 1:
-			raise game.BadMove('The marbles you want to move must be aligned')
 
-		if len(marbles) == 1:
-			state = moveOneMarble(state, marbles[0], move['direction'])
-		elif sameLine(move['direction'], marblesDir):
-			state = moveMarblesTrain(state, marbles, move['direction'])
-		else:
-			state = moveMarbles(state, marbles, move['direction'])
+		if len(marbles) != 0:
+			marblesDir = computeAlignement(marbles)
+			if marblesDir is None and len(marbles) > 1:
+				raise game.BadMove('The marbles you want to move must be aligned')
 
-		if isWinning(state):
-			raise game.GameWin(state['current'], state)
+			if len(marbles) == 1:
+				state = moveOneMarble(state, marbles[0], move['direction'])
+			elif sameLine(move['direction'], marblesDir):
+				state = moveMarblesTrain(state, marbles, move['direction'])
+			else:
+				state = moveMarbles(state, marbles, move['direction'])
+
+			if isWinning(state):
+				raise game.GameWin(state['current'], state)
 		
 		state['current'] = (state['current'] + 1) % 2
 		return state
