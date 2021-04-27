@@ -92,11 +92,12 @@ La requête faite par le serveur au client est:
 {
    "request": "play",
    "lives": 3,
+   "errors": list_of_errors
    "state": state_of_the_game
 }
 ```
 
-La clé `lives` vous indique combien de vies il reste au client. Pour chaque match, les clients ont 3 vies. Il perde une vie à chaque fois qu'il joue un coup invalide. Le client perd le match s'il n'a plus de vies.
+La clé `lives` vous indique combien de vies il reste au client. Pour chaque match, les clients ont 3 vies. Il perde une vie à chaque fois qu'il joue un coup invalide. Le client perd le match s'il n'a plus de vies. La clé `errors` contiendra les erreurs qui vous ont fait perdre vos vies.
 
 Le contenu de la clé `state` décrit l'état courant du jeux. Le structure de l'état du jeux dépend du jeux en cours.
 

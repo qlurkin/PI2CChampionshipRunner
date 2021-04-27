@@ -129,7 +129,13 @@ def Championship(Game):
 		for address in addresses:
 			players = players.append(getPlayer(getState(), address))
 		lives = [3, 3]
+		errors = [[], []]
 		badMoves = lambda : [3 - l for l in lives]
+
+		def kill(player, msg):
+			postChat('Admin', msg)
+			errors[player].append(msg)
+			lives[player] -= 1
 
 		def matchResult(winner):
 			for i, count in enumerate(badMoves()):
@@ -156,11 +162,14 @@ def Championship(Game):
 				print('Request move from {}'.format(players[matchState['current']]['name']))
 				try:
 					start = time.time()
-					response = fetch(players[matchState['current']]['address'], {
+					request = {
 						'request': 'play',
 						'lives': lives[matchState['current']],
+						'errors': errors[matchState['current']],
 						'state': matchState
-					}, timeout=3)
+					}
+					
+					response = fetch(players[matchState['current']]['address'], request, timeout=3)
 					playerTime = time.time() - start
 					if 'message' in response:
 						postChat(players[matchState['current']]['name'], response['message'])
@@ -171,18 +180,15 @@ def Championship(Game):
 						try:
 							matchState = next(matchState, response['move'])
 							postMatchState(matchState)
-						except game.BadMove:
-							postChat('Admin', 'This is a Bad Move')
-							lives[matchState['current']] -= 1
+						except game.BadMove as e:
+							kill(matchState['current'], 'This is a Bad Move. ' + str(e))
 					if response['response'] == 'giveup':
 						postChat('Admin', '{} give up'.format(players[matchState['current']]['name']))
 						raise game.GameWin((matchState['current']+1)%2, matchState)
 				except Timeout:
-					postChat('Admin', 'You take too long to respond')
-					lives[matchState['current']] -= 1
+					kill(matchState['current'], 'You take too long to respond')
 				except OSError:
-					postChat('Admin', '{} unavailable'.format(players[matchState['current']]['name']))
-					lives[matchState['current']] -= 1
+					kill(matchState['current'], '{} unavailable'.format(players[matchState['current']]['name']))
 			postChat('Admin', '{} has done too many Bad Moves'.format(players[matchState['current']]['name']))
 			matchResult((matchState['current']+1)%2)
 		except game.GameWin as e:

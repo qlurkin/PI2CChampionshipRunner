@@ -39,6 +39,8 @@ def computeAlignement(marbles):
 	return getDirectionName(D.pop()) if len(D) == 1 else None
 
 def checkMarbles(state, move):
+	if 'marbles' not in move:
+		raise game.BadMove('The move do not contains the marbles key')
 	marbles = move['marbles']
 	color = symbols[state['current']]
 	if not 0 <= len(marbles) < 4:
@@ -188,6 +190,9 @@ def Abalone(players):
 
 		checkMarbles(state, move)
 		marbles = move['marbles']
+
+		if 'direction' not in move:
+			raise game.BadMove('The move do not contains the direction key')
 
 		if len(marbles) != 0:
 			marblesDir = computeAlignement(marbles)
