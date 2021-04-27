@@ -92,7 +92,7 @@ La requête faite par le serveur au client est:
 {
    "request": "play",
    "lives": 3,
-   "errors": list_of_errors
+   "errors": list_of_errors,
    "state": state_of_the_game
 }
 ```
