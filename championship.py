@@ -132,9 +132,13 @@ def Championship(Game):
 		errors = [[], []]
 		badMoves = lambda : [3 - l for l in lives]
 
-		def kill(player, msg):
+		def kill(player, msg, state, move):
 			postChat('Admin', msg)
-			errors[player].append(msg)
+			errors[player].append({
+				'message': msg,
+				'state': state,
+				'move': move
+			})
 			lives[player] -= 1
 
 		def matchResult(winner):
@@ -168,7 +172,7 @@ def Championship(Game):
 						'errors': errors[matchState['current']],
 						'state': matchState
 					}
-					
+
 					response = fetch(players[matchState['current']]['address'], request, timeout=3)
 					playerTime = time.time() - start
 					if 'message' in response:
@@ -181,14 +185,14 @@ def Championship(Game):
 							matchState = next(matchState, response['move'])
 							postMatchState(matchState)
 						except game.BadMove as e:
-							kill(matchState['current'], 'This is a Bad Move. ' + str(e))
+							kill(matchState['current'], 'This is a Bad Move. ' + str(e), matchState, response['move'])
 					if response['response'] == 'giveup':
 						postChat('Admin', '{} give up'.format(players[matchState['current']]['name']))
 						raise game.GameWin((matchState['current']+1)%2, matchState)
 				except Timeout:
-					kill(matchState['current'], 'You take too long to respond')
+					kill(matchState['current'], 'You take too long to respond', matchState, None)
 				except OSError:
-					kill(matchState['current'], '{} unavailable'.format(players[matchState['current']]['name']))
+					kill(matchState['current'], '{} unavailable'.format(players[matchState['current']]['name']), matchState, None)
 			postChat('Admin', '{} has done too many Bad Moves'.format(players[matchState['current']]['name']))
 			matchResult((matchState['current']+1)%2)
 		except game.GameWin as e:
