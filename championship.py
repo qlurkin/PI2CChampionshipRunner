@@ -196,11 +196,11 @@ def Championship(Game):
 			postChat('Admin', '{} has done too many Bad Moves'.format(players[matchState['current']]['name']))
 			matchResult((matchState['current']+1)%2)
 		except game.GameWin as e:
-			postChat('Admin', 'Winner {}'.format(players[matchState['current']]['name']))
+			postChat('Admin', str(e))
 			postMatchState(e.state)
 			matchResult(e.winner)
 		except game.GameDraw as e:
-			postChat('Admin', 'Draw')
+			postChat('Admin', str(e))
 			postMatchState(e.state)
 			matchResult(None)
 

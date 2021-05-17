@@ -1,4 +1,5 @@
 from .. import game
+from collections import Counter
 
 import copy
 
@@ -161,7 +162,7 @@ def isWinning(state):
 
 def Abalone(players):
 	if len(players) != 2:
-		raise game.BadGameInit('Tic Tac Toe must be played by 2 players')
+		raise game.BadGameInit('Abalone must be played by 2 players')
 
 	state = {
 		'players': players,
@@ -183,6 +184,11 @@ def Abalone(players):
 	# 	'marbles': [],
 	# 	'direction': ''
 	# }
+ 
+	def key(state):
+		return '{}{}'.format(state['current'], ''.join([''.join(line) for line in state['board']]))
+
+	states = Counter([key(state)])
 
 	def next(state, move):
 		if move is None:
@@ -210,6 +216,13 @@ def Abalone(players):
 				raise game.GameWin(state['current'], state)
 		
 		state['current'] = (state['current'] + 1) % 2
+		
+		# Loop detection
+		k = key(state)
+		if states[k] > 1:
+			raise game.GameLoop(state)
+		states.update([k])
+		
 		return state
 
 	return state, next

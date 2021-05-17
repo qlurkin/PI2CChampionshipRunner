@@ -42,3 +42,5 @@ The `board` is a list of lines. `'W'` stands for White, `'B'` for Black, `'E'` f
 `direction` is the direction of he move.
 
 You can pass your turn by sending an empty marbles list.
+
+If the same state (same player turn + same board configuration) occurs more than 2 times, the game is over with a draw.
