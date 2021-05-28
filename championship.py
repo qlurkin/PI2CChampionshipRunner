@@ -1,4 +1,4 @@
-from immutable import List, Map, set, append, remove, pop, add, toPython
+from immutable import List, Map, insertAtRandomPlace, set, append, remove, pop, add, toPython
 from datastore import Datastore
 import json
 import time
@@ -7,12 +7,19 @@ from jsonNetwork import fetch, Timeout
 from games import game
 from threading import Thread
 from match import postMatchState
+from datetime import datetime
+
+timeStr = datetime.now().strftime('%Y-%m-%d_%Hh%M')
 
 getState, updateState, subscribe = Datastore(Map({
 	'players': Map(),
 	'matches': List(),
 	'matchResults': List()
 }))
+
+def loadPreviousData(filename):
+	with open(filename) as file:
+		data = json.load(file)
 
 hooks = {
 	'matchEnd': []
@@ -27,24 +34,24 @@ def __runHook(hook):
 
 def addMatch(addresses):
 	def addMatch(state):
-		return state.update('matches', append(addresses))
+		return state.update('matches', insertAtRandomPlace(addresses))
 	return addMatch
 
-def addPlayer(name, address, matricules):
+def addPlayer(name, address, matricules, points=0, badMoves=0, matchCount=0, status='offline'):
 	
 	player = Map({
 		'name': name,
-		'status': 'online',
+		'status': status,
 		'address': address,
-		'points': 0,
-		'badMoves': 0,
-		'matchCount': 0,
+		'points': points,
+		'badMoves': badMoves,
+		'matchCount': matchCount,
 		'matricules': matricules
 	})
 
 	def addPlayer(state):
 		if address in state['players']:
-			state = updatePlayer(address, lambda player: player.set('name', name).set('status', 'online').set('matricules', matricules))(state)
+			state = updatePlayer(address, lambda player: player.set('name', name).set('status', status).set('matricules', matricules))(state)
 		else:
 			for opponent in state['players']:
 				state = addMatch((address, opponent))(state)
@@ -103,6 +110,7 @@ def changePlayerStatus(address, status):
 
 def addMatchResult(addresses, winner, badMoves, moveCount, playerTimes, totalTime):
 	def addMatchResult(state):
+		#players = [state['players'][addresse]['name'] for addresse in addresses]
 		return state.update('matchResults', append(Map({
 			'players': addresses,
 			'badMoves': badMoves,
@@ -113,9 +121,15 @@ def addMatchResult(addresses, winner, badMoves, moveCount, playerTimes, totalTim
 		})))
 	return addMatchResult
 
+def alreadyPlayed(addresses):
+	for match in getState()['matchResults']:
+		if match['players'] == addresses:
+			return True
+	return False
+
 @subscribe
 def save(state):
-	with open('data.json', 'w', encoding='utf8') as file:
+	with open('data_{}.json'.format(timeStr), 'w', encoding='utf8') as file:
 		json.dump({
 			'players': toPython(getAllPlayers(state)),
 			'results': toPython(state['matchResults'])
@@ -211,6 +225,8 @@ def Championship(Game):
 			if len(matches) > 0:
 				addresses = matches[0]
 				updateState(removeFirstMatch())
+				if alreadyPlayed(addresses):
+					continue
 				if all(map(lambda address: getPlayer(getState(), address)['status'] == 'online', addresses)):
 					playMatch(addresses)
 				else:

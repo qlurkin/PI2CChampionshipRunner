@@ -3,8 +3,10 @@ from jsonNetwork import Timeout, sendJSON, receiveJSON, NotAJSONObject, fetch
 from threading import Thread, Timer
 import importlib
 import sys
-from championship import Championship, addPlayer, getAllPlayers, getState, changePlayerStatus, updateState, hookRegister
+from championship import Championship, addPlayer, getAllPlayers, getState, changePlayerStatus, updateState, hookRegister, addMatchResult
 from graphics import ui
+import json
+import argparse
 
 def checkClient(address):
 	'''
@@ -31,13 +33,16 @@ def checkAllClient():
 		updateState(changePlayerStatus(client['address'], status))
 
 
-def finalizeSubscription(address, name, matricules):
+def finalizeSubscription(address):
 	'''
 		Add client if successfully pinged
 	'''
 	status = checkClient(address)
 	if status == 'online':
-		updateState(addPlayer(name, address, matricules))
+		updateState(changePlayerStatus(address, 'online'))
+
+def preSubscription(name, address, matricules, points=0, badMoves=0, matchCount=0):
+	updateState(addPlayer(name, address, matricules, points, badMoves, matchCount))
 
 
 def startSubscription(client, address, request):
@@ -51,12 +56,15 @@ def startSubscription(client, address, request):
 
 	if any([not isinstance(matricule, str) for matricule in request['matricules']]):
 		raise TypeError("Matricules must be strings")
+
+	if clientAddress not in getState()['players']:
+		preSubscription(request['name'], clientAddress, request['matricules'])
 	
 	sendJSON(client, {
 		'response': 'ok'
 	})
 
-	Timer(1, finalizeSubscription, [clientAddress, request['name'], request['matricules']]).start()
+	Timer(1, finalizeSubscription, [clientAddress]).start()
 
 
 def processRequest(client, address):
@@ -128,14 +136,41 @@ def formatClient(client):
 	return '{}: {}'.format(client['name'], client['points'])
 
 if __name__ == '__main__':
-	args = sys.argv[1:]
-	port = 3000
-	gameName = None
-	for arg in args:
-		if arg.startswith('-port='):
-			port = int(arg[len('-port='):])
-		else:
-			gameName = arg
+	parser = argparse.ArgumentParser()
+	parser.add_argument('gameName', help='The name of the game')
+	parser.add_argument('-p', '--port', help='The port the server use to listen for subscription', default=3000)
+	parser.add_argument('-l', '--load', help='the JSON file of a previous championship that you want to resume')
+	parser.add_argument('-c', '--count', help='the number of match you want to play')
+	args = parser.parse_args()
+
+	gameName = args.gameName
+	port = args.port
+	load = args.load
+	count = args.count
+
+	if load is not None:
+		with open(load, encoding='utf8') as file:
+			content = json.load(file)
+
+		for player in content['players']:
+			preSubscription(
+				player['name'],
+				tuple(player['address']),
+				player['matricules'],
+				player['points'],
+				player['badMoves'],
+				player['matchCount']
+			)
+
+		for match in content['results']:
+			updateState(addMatchResult(
+				tuple((tuple(elem) for elem in match['players'])),
+				match['winner'],
+				match['badMoves'],
+				match['moveCount'],
+				match['playerTimes'],
+				match['totalTime']
+			))
 
 	stopSubscriptions = listenForRequests(port)
 

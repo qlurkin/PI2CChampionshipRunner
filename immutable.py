@@ -1,9 +1,14 @@
+import random
+
 class List:
 	def __init__(self, iterable=[]):
 		self.__items = tuple(iterable)
 
 	def append(self, item):
 		return List(self.__items + (item,))
+	
+	def insert(self, index, item):
+		return List(self.__items[:index] + (item,) + self.__items[index:])
 
 	def __getitem__(self, index):
 		if isinstance(index, slice):
@@ -137,6 +142,12 @@ if __name__ == '__main__':
 def append(item):
 	def fun(L: List):
 		return L.append(item)
+	return fun
+
+def insertAtRandomPlace(item):
+	def fun(L: List):
+		index = random.randrange(len(L)+1)
+		return L.insert(index, item)
 	return fun
 
 def set(keyOrIndex, value):

@@ -131,6 +131,7 @@ dmypy.json
 client.py
 *.code-workspace
 data.json
+data_*.json
 
 *.ttf
 license.txt
