@@ -140,14 +140,14 @@ if __name__ == '__main__':
 	parser.add_argument('gameName', help='The name of the game')
 	parser.add_argument('-p', '--port', help='The port the server use to listen for subscription', default=3000)
 	parser.add_argument('-l', '--load', help='the JSON file of a previous championship that you want to resume')
-	parser.add_argument('-c', '--count', help='the number of match you want to play')
+	parser.add_argument('-c', '--count', help='the number of match you want to play', default=float('inf'), type=int)
 	args = parser.parse_args()
 
 	gameName = args.gameName
 	port = args.port
 	load = args.load
-	count = args.count
 
+	count = args.count
 	if load is not None:
 		with open(load, encoding='utf8') as file:
 			content = json.load(file)
@@ -179,7 +179,7 @@ if __name__ == '__main__':
 
 	hookRegister('matchEnd', checkAllClient)
 
-	stopChampionship = Championship(Game)
+	stopChampionship = Championship(Game, count)
 
 	ui(gameName, render)
 

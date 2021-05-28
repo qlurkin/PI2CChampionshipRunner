@@ -135,7 +135,7 @@ def save(state):
 			'results': toPython(state['matchResults'])
 		}, file, indent='\t')
 
-def Championship(Game):
+def Championship(Game, matchCount):
 	running = True
 
 	def playMatch(addresses):
@@ -210,7 +210,7 @@ def Championship(Game):
 			postChat('Admin', '{} has done too many Bad Moves'.format(players[matchState['current']]['name']))
 			matchResult((matchState['current']+1)%2)
 		except game.GameWin as e:
-			postChat('Admin', str(e))
+			postChat('Admin', 'Game Over: {} win the game'.format(players[e.winner]['name']))
 			postMatchState(e.state)
 			matchResult(e.winner)
 		except game.GameDraw as e:
@@ -220,7 +220,8 @@ def Championship(Game):
 
 	def run():
 		print("Start Championship")
-		while running:
+		count = 0
+		while running and count < matchCount:
 			matches = getState()['matches']
 			if len(matches) > 0:
 				addresses = matches[0]
@@ -229,6 +230,7 @@ def Championship(Game):
 					continue
 				if all(map(lambda address: getPlayer(getState(), address)['status'] == 'online', addresses)):
 					playMatch(addresses)
+					count += 1
 				else:
 					postChat('Admin', 'Some player are offline. Report Match')
 					updateState(addMatch(addresses))
