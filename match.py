@@ -14,7 +14,7 @@ def tic(delay):
 				elapsed = float('inf')
 			else:
 				elapsed = time.time() - last
-			if elapsed > delay:
+			if elapsed >= delay:
 				last = time.time()
 			else:
 				time.sleep(delay - elapsed)
