@@ -23,6 +23,13 @@ aaText = False
 def pilImageToSurface(pilImage):
 	return pygame.image.fromstring(pilImage.tobytes(), pilImage.size, pilImage.mode).convert()
 
+def cropRight(surface, width):
+	if width < surface.get_size()[0]:
+		cropped = pygame.Surface((width, surface.get_size()[1]))
+		cropped.blit(surface, (0, 0))
+		return cropped
+	return surface
+
 def drawClient(client):
 	res = pygame.Surface((200, 58))
 	res.fill((0, 0, 0))
@@ -32,6 +39,7 @@ def drawClient(client):
 	if client['status'] != 'online':
 		nameColor = (255, 0, 0)
 	name = nameFont.render(client['name'], aaText, nameColor)
+	name = cropRight(name, 145)
 	res.blit(name, (10, 10))
 
 	address = dimmedFont.render('{}:{}'.format(*(client['address'])), aaText, (100, 100, 100))
@@ -70,6 +78,7 @@ def drawText(text, width, font, color):
 
 def drawChat(chat):
 	name = nameFont.render(chat['name'], aaText, (255, 255, 255))
+	name = cropRight(name, 250)
 	msg = drawText(chat['message'], 280, messageFont, (200, 200, 200))
 	msgHeight = msg.get_size()[1]
 	res = pygame.Surface((300, msgHeight + 40))
@@ -80,14 +89,20 @@ def drawChat(chat):
 
 def render(state, stateImage):
 	players = getAllPlayers(state)
+	matchCount = len(players)**2 - len(players)
+	playedCount = len(state['matchResults'])
 	matchState = getMatch()
 	res = pygame.Surface(screenSize)
 	res = res.convert()
 	res.fill((0, 0, 0))
 	pygame.draw.line(res, (255, 255, 255), (200, 0), (200, screenSize[1]))
 	pygame.draw.line(res, (255, 255, 255), (screenSize[0]-300, 0), (screenSize[0]-300, screenSize[1]))
+	count = nameFont.render('Match {}/{}'.format(playedCount+1, matchCount), aaText, (255, 255, 255))
+	res.blit(count, count.get_rect(midtop=(100, 12)))
+	
 
-	y = 0
+	y = 40
+	pygame.draw.line(res, (255, 255, 255), (0, y-1), (200, y-1))
 	for i, client in enumerate(sorted(players, key = lambda cl: -cl['points'])):
 		clientSurface = drawClient(client)
 		res.blit(clientSurface, (0, y))
@@ -109,9 +124,11 @@ def render(state, stateImage):
 		res.blit(vs, vs.get_rect(midtop=(center, 10)))
 
 		player1 = playerFont.render(matchState['players'][0], aaText, (255, 255, 255))
+		player1 = cropRight(player1, 300)
 		res.blit(player1, player1.get_rect(midright=(center-60, 45)))
 
 		player2 = playerFont.render(matchState['players'][1], aaText, (255, 255, 255))
+		player2 = cropRight(player2, 300)
 		res.blit(player2, player2.get_rect(midleft=(center+60, 45)))
 
 	if stateImage is not None:
