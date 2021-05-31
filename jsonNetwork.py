@@ -24,7 +24,10 @@ def receiveJSON(socket, timeout = 1):
 	data = ''
 	start = time.time()
 	while not finished:
-		message += socket.recv(4096).decode('utf8')
+		try:
+			message += socket.recv(4096).decode('utf8')
+		except s.timeout:
+			pass
 		if len(message) > 0 and message[0] != '{':
 			raise NotAJSONObject('Received message is not a JSON Object')
 		try:
@@ -40,6 +43,7 @@ def fetch(address, data, timeout=1):
 		Request response from address. Data is included in the request
 	'''
 	socket = s.socket()
+	socket.settimeout(0.1)
 	socket.connect(address)
 	sendJSON(socket, data)
 	response = receiveJSON(socket, timeout)
