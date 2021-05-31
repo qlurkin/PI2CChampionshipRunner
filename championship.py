@@ -187,7 +187,7 @@ def Championship(Game, matchCount):
 						'state': matchState
 					}
 
-					response = fetch(players[matchState['current']]['address'], request, timeout=3)
+					response = fetch(players[matchState['current']]['address'], request, timeout=3.1)
 					playerTime = time.time() - start
 					if 'message' in response:
 						postChat(players[matchState['current']]['name'], response['message'])
