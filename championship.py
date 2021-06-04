@@ -1,3 +1,4 @@
+import math
 from immutable import List, Map, insertAtRandomPlace, set, append, remove, pop, add, toPython
 from datastore import Datastore
 import json
@@ -179,14 +180,13 @@ def Championship(Game, matchCount):
 					return
 				print('Request move from {}'.format(players[matchState['current']]['name']))
 				try:
-					start = time.time()
 					request = {
 						'request': 'play',
 						'lives': lives[matchState['current']],
 						'errors': errors[matchState['current']],
 						'state': matchState
 					}
-
+					start = time.time()
 					response = fetch(players[matchState['current']]['address'], request, timeout=3.1)
 					playerTime = time.time() - start
 					if 'message' in response:
@@ -194,7 +194,7 @@ def Championship(Game, matchCount):
 					if response['response'] == 'move':
 						moveCount += 1
 						playerTimes[matchState['current']] += playerTime
-						print('{} play:\n{}'.format(players[matchState['current']]['name'], response['move']))
+						print('{} play ({}s):\n{}'.format(players[matchState['current']]['name'], playerTime, response['move']))
 						try:
 							matchState = next(matchState, response['move'])
 							postMatchState(matchState)
