@@ -6,6 +6,9 @@ import yaml
 import sys
 
 def monitor(group):
+	if 'cmd' not in group:
+		print('No command for', ', '.join([elem['name'] for elem in group['students']]))
+		return lambda:None
 	name = groupName(group)
 	proc = None
 	thread = None
@@ -80,10 +83,10 @@ def start(filename):
 		command = ''
 		while command != 'stop':
 			command = input()
-		print('stopping...')
 	except Exception as e:
 		print(type(e), e)
 	finally:
+		print('stopping...')
 		for stop in stops:
 			stop()
 		print('All processes stopped')
