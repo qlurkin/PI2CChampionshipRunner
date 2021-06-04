@@ -90,14 +90,14 @@ def drawChat(chat):
 def render(state, stateImage):
 	players = getAllPlayers(state)
 	matchCount = len(players)**2 - len(players)
-	playedCount = len(state['matchResults'])
+	playedCount = min(len(state['matchResults'])+1, matchCount)
 	matchState = getMatch()
 	res = pygame.Surface(screenSize)
 	res = res.convert()
 	res.fill((0, 0, 0))
 	pygame.draw.line(res, (255, 255, 255), (200, 0), (200, screenSize[1]))
 	pygame.draw.line(res, (255, 255, 255), (screenSize[0]-300, 0), (screenSize[0]-300, screenSize[1]))
-	count = nameFont.render('Match {}/{}'.format(playedCount+1, matchCount), aaText, (255, 255, 255))
+	count = nameFont.render('Match {}/{}'.format(playedCount, matchCount), aaText, (255, 255, 255))
 	res.blit(count, count.get_rect(midtop=(100, 12)))
 	
 
