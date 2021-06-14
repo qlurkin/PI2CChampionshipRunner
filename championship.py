@@ -1,5 +1,5 @@
 import math
-from immutable import List, Map, insertAtRandomPlace, set, append, remove, pop, add, toPython
+from immutable import List, Map, insertAtRandomPlace, setItem, append, remove, add, toPython
 from datastore import Datastore
 import json
 import time
@@ -9,6 +9,7 @@ from games import game
 from threading import Thread
 from match import postMatchState
 from datetime import datetime
+import random
 
 timeStr = datetime.now().strftime('%Y-%m-%d_%Hh%M')
 
@@ -55,9 +56,10 @@ def addPlayer(name, address, matricules, points=0, badMoves=0, matchCount=0, sta
 			state = updatePlayer(address, lambda player: player.set('name', name).set('status', status).set('matricules', matricules))(state)
 		else:
 			for opponent in state['players']:
-				state = addMatch((address, opponent))(state)
-				state = addMatch((opponent, address))(state)
-			state = state.update('players', set(address, player))
+				players = [address, opponent]
+				random.shuffle(players)
+				state = addMatch(tuple(players))(state)
+			state = state.update('players', setItem(address, player))
 		return state
 	return addPlayer
 
@@ -124,7 +126,7 @@ def addMatchResult(addresses, winner, badMoves, moveCount, playerTimes, totalTim
 
 def alreadyPlayed(addresses):
 	for match in getState()['matchResults']:
-		if match['players'] == addresses:
+		if set(match['players']) == set(addresses):
 			return True
 	return False
 

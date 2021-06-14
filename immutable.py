@@ -150,7 +150,7 @@ def insertAtRandomPlace(item):
 		return L.insert(index, item)
 	return fun
 
-def set(keyOrIndex, value):
+def setItem(keyOrIndex, value):
 	def fun(ListOrMap):
 		return ListOrMap.set(keyOrIndex, value)
 	return fun
