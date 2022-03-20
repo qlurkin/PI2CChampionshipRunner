@@ -1,6 +1,7 @@
 import os
 #os.environ['PYTHONASYNCIODEBUG'] = '1'
 import asyncio
+from webbrowser import get
 from inscription import inscription
 from championship import championship
 from ui import ui
@@ -10,13 +11,24 @@ from state import State
 import importlib
 import argparse
 from aiodebug import log_slow_callbacks
+from logFilenames import getMainLogFilename, fileFormatter, consoleFormatter
 
 log = logging.getLogger('server')
-log.setLevel(logging.INFO)
-log.addHandler(logging.StreamHandler(sys.stdout))
+log.setLevel(logging.DEBUG)
+
+consoleHandler = logging.StreamHandler(sys.stdout)
+consoleHandler.setLevel(logging.DEBUG)
+consoleHandler.setFormatter(consoleFormatter)
+
+fileHandler = logging.FileHandler(getMainLogFilename())
+fileHandler.setLevel(logging.INFO)
+fileHandler.setFormatter(fileFormatter)
+
+log.addHandler(consoleHandler)
+log.addHandler(fileHandler)
 
 async def main(gameName, port):
-    log_slow_callbacks.enable(0.5)
+    #log_slow_callbacks.enable(0.5)
     Game = importlib.import_module('games.{}.game'.format(gameName)).Game
     inscriptionTask = asyncio.create_task(inscription(port))
     championshipTask = asyncio.create_task(championship(Game))

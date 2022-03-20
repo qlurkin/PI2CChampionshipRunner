@@ -25,7 +25,6 @@ async def awaitAMatch():
         if match.task is not None and match.task.done():
             if not match.handled:
                 try:
-                    log.info('Handling {} VS {}'.format(*match.clients))
                     await match.task
                 except Exception as e:
                     log.info(e)
@@ -34,6 +33,8 @@ async def awaitAMatch():
                     for client in State.getClients(match):
                         client.busy = False
                     match.handled = True
+                    log.info('Handled: {}'.format(match))
+                    log.info('Remaining: {}/{}'.format(State.remainingMatches, State.matchCount))
 
 async def championship(Game):
     log.info('Championship Task Started')

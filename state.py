@@ -27,6 +27,9 @@ class Client:
     matchCount: int = 0
     points: int = 0
 
+    def __str__(self):
+        return self.name
+
 @dataclass
 class Move:
     client: str
@@ -45,6 +48,9 @@ class Match:
         self.clients = [client1.name, client2.name]
         self.moves = []
 
+    def __str__(self):
+        return '{} VS {}'.format(*self.clients)
+
 @dataclass
 class _State:
     clients: dict
@@ -60,6 +66,14 @@ class _State:
 
     def getClients(self, match: Match):
         return [self.clients[name] for name in match.clients]
+
+    @property
+    def remainingMatches(self):
+        return len(list(filter(lambda match: match.status != MatchStatus.DONE, self.matches)))
+
+    @property
+    def matchCount(self):
+        return len(self.matches)
 
 
 State = _State(clients = {}, matches = [])

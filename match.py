@@ -5,6 +5,8 @@ from games import game
 from state import State, Match, MatchStatus, Client
 import asyncio
 import logging
+import sys
+from logFilenames import consoleFormatter, getMatchFilename, matchFileFormatter
 
 log = logging.getLogger('server')
 
@@ -26,7 +28,6 @@ class Player:
         return len(self.errors)
 
     def kill(self, msg, matchState, move):
-        log.info(msg)
         self.errors.append({
             'message': msg,
             'state': matchState,
@@ -34,7 +35,21 @@ class Player:
         })
 
 async def runMatch(Game: callable, match: Match):
-    log.info('Match {} VS {} Started'.format(*match.clients))
+    log = logging.getLogger(str(match))
+    log.setLevel(logging.DEBUG)
+
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setLevel(logging.DEBUG)
+    consoleHandler.setFormatter(consoleFormatter)
+
+    fileHandler = logging.FileHandler(getMatchFilename(match))
+    fileHandler.setLevel(logging.INFO)
+    fileHandler.setFormatter(matchFileFormatter)
+
+    log.addHandler(consoleHandler)
+    log.addHandler(fileHandler)
+
+    log.info('Match Started')
     players = [Player(client) for client in State.getClients(match)]
     winner = None
     matchState, next = Game(match.clients)
@@ -49,10 +64,7 @@ async def runMatch(Game: callable, match: Match):
 
     try:
         while all([player.lives != 0 for player in players]):
-            #log.info('Request move from {}'.format(current().client.name))
-
             try:
-                #log.info('BEFORE REQUEST')
                 request = {
                     'request': 'play',
                     'lives': current().lives,
@@ -61,7 +73,10 @@ async def runMatch(Game: callable, match: Match):
                 }
                 
                 response, responseTime = await fetch(current().client, request)
-                #log.info('AFTER REQUEST')
+
+                if responseTime > 10:
+                    current().kill('{} take too long to respond: {}s'.format(current().client.name, responseTime))
+
                 if 'message' in response:
                     pass
             
@@ -82,16 +97,14 @@ async def runMatch(Game: callable, match: Match):
 
     except game.GameWin as e:
         winner = players[e.winner]
-        log.info('Match {} VS {} Done. {} Won'.format(*match.clients, winner.client.name))
+        log.info('Match Done. {} Won'.format(winner.client.name))
 
     except game.GameDraw as e:
         winner = None
-        log.info('Match {} VS {} Done with no winner'.format(*match.clients))
+        log.info('Match Done with no winner')
 
-    #match.status = MatchStatus.DONE
     for player in players:
         client = player.client
-        #client.busy = False
         client.matchCount += 1
         client.badMoves += player.badMoves
         if winner is None:
