@@ -40,10 +40,6 @@ async def championship(Game):
     log.info('Championship Task Started')
     tic = clock(5)
     while True:
-        #log.info('CHAMPIONSHIP BEFORE TIC')
         await tic()
-        #log.info('CHAMPIONSHIP BEFORE RUNAMATCH')
         await runAMatch(Game)
-        #log.info('CHAMPIONSHIP BEFORE AWAITAMATCH')
         await awaitAMatch()
-        #log.info('CHAMPIONSHIP AFTER AWAITAMATCH')

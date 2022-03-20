@@ -38,11 +38,6 @@ async def processClient(reader, writer):
         except KeyError as e:
             raise InscriptionError('Key \'{}\' Missing'.format(e))
 
-        # if client.name in State.clients and State.clients[client.name].matricules != client.matricules:
-        #     raise InscriptionError('Name \'{}\' Already Used'.format(client.name))
-
-        # State.clients[client.name] = client
-
         try:
             State.addClient(client)
         except StateError as e:

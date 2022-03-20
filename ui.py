@@ -12,9 +12,7 @@ async def ui():
 
     tic = clock(2)
     while not glfw.window_should_close(window):
-        #log.info('UI BEFORE TIC')
         await tic()
-        #log.info('UI AFTER TIC')
         glfw.swap_buffers(window)
         glfw.poll_events()
     glfw.terminate()
