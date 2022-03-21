@@ -2,10 +2,10 @@ import asyncio
 from mmap import PROT_READ
 from jsonStream import readJSON, writeJSON
 from state import State, Client, StateError
-import logging
+from logs import getLogger
 from utils import ping
 
-log = logging.getLogger('server')
+log = getLogger('inscription')
 
 class InscriptionError(Exception):
     pass

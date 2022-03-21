@@ -11,24 +11,14 @@ from state import State
 import importlib
 import argparse
 from aiodebug import log_slow_callbacks
-from logFilenames import getMainLogFilename, fileFormatter, consoleFormatter
+from logs import getLogger
 
-log = logging.getLogger('server')
-log.setLevel(logging.DEBUG)
+log = getLogger('server')
 
-consoleHandler = logging.StreamHandler(sys.stdout)
-consoleHandler.setLevel(logging.DEBUG)
-consoleHandler.setFormatter(consoleFormatter)
-
-fileHandler = logging.FileHandler(getMainLogFilename())
-fileHandler.setLevel(logging.INFO)
-fileHandler.setFormatter(fileFormatter)
-
-log.addHandler(consoleHandler)
-log.addHandler(fileHandler)
-
-async def main(gameName, port):
+async def main(gameName: str, port: int):
     #log_slow_callbacks.enable(0.5)
+    log.info('Game Server For {}'.format(gameName.capitalize()))
+
     Game = importlib.import_module('games.{}.game'.format(gameName)).Game
     inscriptionTask = asyncio.create_task(inscription(port))
     championshipTask = asyncio.create_task(championship(Game))
@@ -36,7 +26,9 @@ async def main(gameName, port):
     await ui()
 
     inscriptionTask.cancel()
+    log.info('Inscription Task Stopped')
     championshipTask.cancel()
+    log.info('Championship Task Stopped')
 
 
 if __name__ == "__main__":

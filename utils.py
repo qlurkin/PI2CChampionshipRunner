@@ -5,7 +5,7 @@ import time
 from jsonStream import fetch
 from state import ClientStatus
 
-log = logging.getLogger('server')
+log = logging.getLogger('utils')
 
 class PingError(Exception):
     pass

@@ -1,8 +1,8 @@
 import glfw
-import logging
+from logs import getLogger
 from utils import clock
 
-log = logging.getLogger('server')
+log = getLogger('ui')
 
 async def ui():
     log.info("UI started")

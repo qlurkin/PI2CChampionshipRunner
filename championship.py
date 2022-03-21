@@ -1,11 +1,11 @@
-import logging
 from utils import clock
 from state import State, MatchStatus, ClientStatus
 import asyncio
 from match import runMatch
 from utils import ping
+from logs import getLogger
 
-log = logging.getLogger('server')
+log = getLogger('championship')
 
 async def runAMatch(Game):
     for match in State.matches:

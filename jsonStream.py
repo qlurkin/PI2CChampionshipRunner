@@ -4,21 +4,9 @@ import logging
 from socket import AI_NUMERICHOST
 import time
 import sys
-from logFilenames import consoleFormatter, fileFormatter, getMainLogFilename
+from logs import getLogger
 
-log = logging.getLogger('network')
-log.setLevel(logging.DEBUG)
-
-consoleHandler = logging.StreamHandler(sys.stdout)
-consoleHandler.setLevel(logging.DEBUG)
-consoleHandler.setFormatter(consoleFormatter)
-
-fileHandler = logging.FileHandler(getMainLogFilename())
-fileHandler.setLevel(logging.INFO)
-fileHandler.setFormatter(fileFormatter)
-
-log.addHandler(consoleHandler)
-log.addHandler(fileHandler)
+log = getLogger('network')
 
 class NotAJSONObject(Exception):
     pass
@@ -58,13 +46,13 @@ async def fetch(client, request, baseTime = 0.25, retries=10):
                 reader, writer = await asyncio.wait_for(coro, baseTime*(i+1))
                 break
             except asyncio.TimeoutError:
-                if i > 4:
-                    log.debug('Connection take too long. Retry({})...'.format(i+1))
+                log.debug('Connection take too long. Retry({})...'.format(i+1))
             except OSError as e:
-                if i > 4:
-                    log.debug('Connection error: {}. Retry({})...'.format(e, i+1))
+                log.debug('Connection error: {}. Retry({})...'.format(e, i+1))
         else:
-            raise FetchError("Unable to Open Connection to {}:{}".format(client.ip, client.port))
+            error = "Unable to Open Connection to {}:{}".format(client.ip, client.port)
+            log.error(error)
+            raise FetchError(error)
         await writeJSON(writer, request)
         start = time.time()
         response = await readJSON(reader)

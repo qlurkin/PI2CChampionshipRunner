@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from http import client
 from typing import Any
 from jsonStream import FetchError, fetch
 from games import game
@@ -6,18 +7,23 @@ from state import State, Match, MatchStatus, Client
 import asyncio
 import logging
 import sys
-from logFilenames import consoleFormatter, getMatchFilename, matchFileFormatter
+from logs import getLogger, getMatchLogger
 
-log = logging.getLogger('server')
+MOVE_TIME_LIMIT = 10
+RETRY_TIME = 5
+
+log = getLogger('match')
 
 @dataclass
 class Player:
     client: Client
     errors: list
+    index: int
 
-    def __init__(self, client: Client):
+    def __init__(self, client: Client, index):
         self.client = client
         self.errors = []
+        self.index = index
 
     @property
     def lives(self):
@@ -34,66 +40,59 @@ class Player:
             'move': move
         })
 
+    def __str__(self):
+        return str(self.client)
+
 async def runMatch(Game: callable, match: Match):
-    log = logging.getLogger(str(match))
-    log.setLevel(logging.DEBUG)
+    log = getMatchLogger(match)
 
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setLevel(logging.DEBUG)
-    consoleHandler.setFormatter(consoleFormatter)
-
-    fileHandler = logging.FileHandler(getMatchFilename(match))
-    fileHandler.setLevel(logging.INFO)
-    fileHandler.setFormatter(matchFileFormatter)
-
-    log.addHandler(consoleHandler)
-    log.addHandler(fileHandler)
+    def kill(player, msg, move):
+        log.warning(msg)
+        player.kill(msg, matchState, move)
 
     log.info('Match Started')
-    players = [Player(client) for client in State.getClients(match)]
+    players = [Player(client, i) for i, client in enumerate(State.getClients(match))]
     winner = None
     matchState, next = Game(match.clients)
     matchState['current'] = 0
     match.state = matchState
 
-    def current():
-        return players[matchState['current']]
-
-    def other():
-        return players[(matchState['current']+1)%2]
-
     try:
         while all([player.lives != 0 for player in players]):
             try:
+                current = players[matchState['current']]
+                other = players[(matchState['current']+1)%2]
                 request = {
                     'request': 'play',
-                    'lives': current().lives,
-                    'errors': current().errors,
+                    'lives': current.lives,
+                    'errors': current.errors,
                     'state': matchState
                 }
                 
-                response, responseTime = await fetch(current().client, request)
-
-                if responseTime > 10:
-                    current().kill('{} take too long to respond: {}s'.format(current().client.name, responseTime))
+                response, responseTime = await fetch(current.client, request)
 
                 if 'message' in response:
                     pass
             
                 if response['response'] == 'move':
+                    move = response['move']
+                    log.debug('{} play {}'.format(current, move))
                     try:
-                        matchState = next(matchState, response['move'])
+                        matchState = next(matchState, move)
+                        if responseTime > MOVE_TIME_LIMIT:
+                            kill(current, '{} take too long to respond: {}s'.format(current, responseTime), move)
                     except game.BadMove as e:
-                        current().kill('This is a Bad Move. ' + str(e), matchState, response['move'])
+                        kill(current, 'This is a Bad Move. ' + str(e), matchState, move)
                 
                 if response['response'] == 'giveup':
-                    raise game.GameWin((matchState['current']+1)%len(players), matchState)
-            except FetchError as e:
-                log.info('KILL')
-                current().kill('{} unavailable: {}'.format(current().client.name, e), matchState, None)
+                    log.info('{} Give Up'.format(current))
+                    raise game.GameWin(other.index, matchState)
+            except FetchError:
+                kill(current, '{} unavailable. Wait for {} seconds'.format(current, RETRY_TIME), matchState, None)
+                await asyncio.sleep(RETRY_TIME)
         
-        log.info('{} has done too many Bad Moves'.format(current().client.name))
-        winner = other()
+        log.warning('{} has done too many Bad Moves'.format(current))
+        winner = other
 
     except game.GameWin as e:
         winner = players[e.winner]
