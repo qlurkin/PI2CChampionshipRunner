@@ -2,10 +2,11 @@ from dataclasses import dataclass
 from typing import Any
 from utils import clock
 import asyncio
-from logs import getLogger, stateFilename
+from logs import getLogger, stateFilename, date
 from status import ClientStatus, MatchStatus
 import json
 import jsonpickle
+from datetime import datetime
 
 log = getLogger('state')
 
@@ -57,6 +58,7 @@ class Match:
 class _State:
     clients: dict
     matches: list
+    date: datetime = date
 
     def addClient(self, client: Client):
         if client.name in self.clients and self.clients[client.name].matricules != client.matricules:
@@ -79,6 +81,7 @@ class _State:
 
 
 State = _State(clients = {}, matches = [])
+print(State.__dict__)
 log.info('State Created')
 
 async def dumpState():
