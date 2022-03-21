@@ -3,7 +3,7 @@ from jsonStream import readJSON, writeJSON
 import logging
 import time
 from jsonStream import fetch
-from state import ClientStatus
+from status import ClientStatus
 
 log = logging.getLogger('utils')
 

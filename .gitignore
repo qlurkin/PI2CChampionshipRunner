@@ -136,3 +136,5 @@ data_*.json
 *.ttf
 license.txt
 image.png
+
+logs

@@ -1,19 +1,16 @@
 from dataclasses import dataclass
 from typing import Any
-from enum import Enum
+from utils import clock
+import asyncio
+from logs import getLogger, stateFilename
+from status import ClientStatus, MatchStatus
+import json
+import jsonpickle
+
+log = getLogger('state')
 
 class StateError(Exception):
     pass
-
-class ClientStatus(Enum):
-    PENDING = 1
-    READY = 2
-    LOST = 3
-
-class MatchStatus(Enum):
-    PENDING = 1
-    RUNNING = 2
-    DONE = 3
 
 @dataclass
 class Client:
@@ -51,6 +48,11 @@ class Match:
     def __str__(self):
         return '{} VS {}'.format(*self.clients)
 
+    def __getstate__(self):
+        D = dict(self.__dict__)
+        D['task'] = None
+        return D
+
 @dataclass
 class _State:
     clients: dict
@@ -77,3 +79,13 @@ class _State:
 
 
 State = _State(clients = {}, matches = [])
+log.info('State Created')
+
+async def dumpState():
+    log.info('State Dumper Started')
+    tic = clock(1)
+    while True:
+        await tic()
+        with open(stateFilename, 'w', encoding='utf8') as file:
+            file.write(jsonpickle.encode(State))
+

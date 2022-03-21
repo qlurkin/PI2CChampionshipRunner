@@ -1,13 +1,8 @@
-import os
-#os.environ['PYTHONASYNCIODEBUG'] = '1'
 import asyncio
-from webbrowser import get
 from inscription import inscription
 from championship import championship
 from ui import ui
-import logging
-import sys
-from state import State
+from state import dumpState
 import importlib
 import argparse
 from aiodebug import log_slow_callbacks
@@ -22,13 +17,28 @@ async def main(gameName: str, port: int):
     Game = importlib.import_module('games.{}.game'.format(gameName)).Game
     inscriptionTask = asyncio.create_task(inscription(port))
     championshipTask = asyncio.create_task(championship(Game))
+    stateDumperTask = asyncio.create_task(dumpState())
 
     await ui()
 
     inscriptionTask.cancel()
-    log.info('Inscription Task Stopped')
+    try:
+        await inscriptionTask
+    except asyncio.CancelledError:
+        log.info('Inscription Task Stopped')
+    
     championshipTask.cancel()
-    log.info('Championship Task Stopped')
+    try:
+        await championshipTask
+    except asyncio.CancelledError:
+        log.info('Championship Task Stopped')
+    
+    stateDumperTask.cancel()
+    try:
+        await stateDumperTask
+    except asyncio.CancelledError:
+        log.info('State Dumper Task Stopped')
+    
 
 
 if __name__ == "__main__":

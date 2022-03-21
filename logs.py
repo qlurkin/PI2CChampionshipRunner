@@ -1,6 +1,5 @@
 from datetime import datetime
 import os
-from state import Match, State
 import logging
 import sys
 
@@ -21,11 +20,12 @@ if not os.path.exists(LOGS_FOLDER):
         os.mkdir(LOGS_FOLDER)
 
 mainLogFilename = os.path.join(LOGS_FOLDER, getDateStr()+'.log')
+stateFilename = os.path.join(LOGS_FOLDER, getDateStr()+'.json')
 
 def getMainLogFilename():
     return mainLogFilename
 
-def getMatchFilename(match: Match):
+def getMatchFilename(match):
     folder = os.path.join(LOGS_FOLDER, getDateStr())
     if not os.path.exists(folder):
         os.mkdir(folder)

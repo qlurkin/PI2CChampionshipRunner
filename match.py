@@ -96,12 +96,14 @@ async def runMatch(Game: callable, match: Match):
 
     except game.GameWin as e:
         winner = players[e.winner]
+        match.winner = str(winner)
         log.info('Match Done. {} Won'.format(winner.client.name))
 
     except game.GameDraw as e:
         winner = None
         log.info('Match Done with no winner')
 
+    match.state = None
     for player in players:
         client = player.client
         client.matchCount += 1
