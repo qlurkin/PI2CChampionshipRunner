@@ -29,14 +29,11 @@ class Client:
         return self.name
 
 @dataclass
-class Move:
-    client: str
-    move: Any
-
-@dataclass
 class Match:
     clients: list
-    moves: list
+    moves = 0
+    start = None
+    end = None
     status: MatchStatus = MatchStatus.PENDING
     winner: str = None
     task = None
@@ -44,7 +41,6 @@ class Match:
 
     def __init__(self, client1: Client, client2: Client):
         self.clients = [client1.name, client2.name]
-        self.moves = []
 
     def __str__(self):
         return '{} VS {}'.format(*self.clients)
@@ -81,7 +77,6 @@ class _State:
 
 
 State = _State(clients = {}, matches = [])
-print(State.__dict__)
 log.info('State Created')
 
 async def dumpState():

@@ -1,12 +1,9 @@
 from dataclasses import dataclass
-from http import client
-from typing import Any
 from jsonStream import FetchError, fetch
 from games import game
-from state import State, Match, MatchStatus, Client
+from state import State, Match, Client
 import asyncio
-import logging
-import sys
+import time
 from logs import getLogger, getMatchLogger
 
 MOVE_TIME_LIMIT = 10
@@ -51,6 +48,7 @@ async def runMatch(Game: callable, match: Match):
         player.kill(msg, matchState, move)
 
     log.info('Match Started')
+    match.start = time.time()
     players = [Player(client, i) for i, client in enumerate(State.getClients(match))]
     winner = None
     matchState, next = Game(match.clients)
@@ -79,6 +77,8 @@ async def runMatch(Game: callable, match: Match):
                     log.debug('{} play {}'.format(current, move))
                     try:
                         matchState = next(matchState, move)
+                        match.state = matchState
+                        match.moves += 1
                         if responseTime > MOVE_TIME_LIMIT:
                             kill(current, '{} take too long to respond: {}s'.format(current, responseTime), move)
                     except game.BadMove as e:
@@ -104,6 +104,7 @@ async def runMatch(Game: callable, match: Match):
         log.info('Match Done with no winner')
 
     match.state = None
+    match.end = time.time()
     for player in players:
         client = player.client
         client.matchCount += 1

@@ -1,6 +1,9 @@
 {
     "cSpell.words": [
         "aiodebug",
-        "glfw"
+        "glfw",
+        "imgui",
+        "Parameteri",
+        "tobytes"
     ]
 }

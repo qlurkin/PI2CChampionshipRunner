@@ -1,18 +1,152 @@
 import glfw
+import OpenGL.GL as gl
+import imgui
+from imgui.integrations.glfw import GlfwRenderer
+from state import State
+import time
+from status import MatchStatus
+
+FONT_SIZE = 14
+
 from logs import getLogger
 from utils import clock
 
 log = getLogger('ui')
 
-async def ui():
-    log.info("UI started")
-    glfw.init()
-    window = glfw.create_window(640, 480, "Hello World", None, None)
+def createTextureFromPIL(pilImage):
+    data = pilImage.tobytes()
+    width, height = pilImage.size
+
+    texture = gl.glGenTextures(1)
+    gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
+    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
+    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
+    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA, width, height, 0, gl.GL_RGBA,
+                 gl.GL_UNSIGNED_BYTE, data)
+
+    return texture, width, height
+
+def impl_glfw_init():
+    width, height = 1280, 720
+    window_name = "minimal ImGui/GLFW3 example"
+
+    if not glfw.init():
+        print("Could not initialize OpenGL context")
+        exit(1)
+
+    # OS X supports only forward-compatible core profiles from 3.2
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+
+    glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, gl.GL_TRUE)
+
+    # Create a windowed mode window and its OpenGL context
+    window = glfw.create_window(
+        int(width), int(height), window_name, None, None
+    )
     glfw.make_context_current(window)
 
-    tic = clock(2)
+    if not window:
+        glfw.terminate()
+        print("Could not initialize Window")
+        exit(1)
+
+    return window
+
+async def ui():
+    log.info("UI started")
+    imgui.create_context()
+    window = impl_glfw_init()
+    impl = GlfwRenderer(window)
+    io = imgui.get_io()
+    
+    regular = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Regular Nerd Font Complete.ttf', FONT_SIZE)
+    bold = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Bold Nerd Font Complete.ttf', FONT_SIZE)
+    impl.refresh_font_texture()
+
+    def print_key_value(key, value):
+        imgui.text(str(key)+':') 
+        imgui.same_line()
+        imgui.push_font(bold)
+        imgui.text(str(value))
+        imgui.pop_font()
+
+    tic = clock(60)
     while not glfw.window_should_close(window):
         await tic()
-        glfw.swap_buffers(window)
         glfw.poll_events()
+        impl.process_inputs()
+
+        imgui.new_frame()
+        imgui.push_font(regular)
+
+        if imgui.begin_main_menu_bar():
+            if imgui.begin_menu("File", True):
+
+                clicked_quit, selected_quit = imgui.menu_item(
+                    "Quit", 'Cmd+Q', False, True
+                )
+
+                if clicked_quit:
+                    exit(1)
+
+                imgui.end_menu()
+            imgui.end_main_menu_bar()
+
+        imgui.begin("Clients")
+        for client in sorted(State.clients.values(), key=lambda client : -client.points):
+            show, _ = imgui.collapsing_header('{}'.format(client.name))
+            imgui.columns(count=2, border=False)
+            print_key_value('IP', '{}:{}'.format(client.ip, client.port))
+            imgui.next_column()
+            print_key_value('Points', client.points)
+            imgui.columns(1)
+            if show:
+                print_key_value('Played', client.matchCount)
+                if client.matchCount != 0:
+                    print_key_value('Avg Bad Moves', '{0:.2f}'.format(client.badMoves/client.matchCount))
+        imgui.end()
+
+        imgui.begin('Matches')
+        for match in sorted(State.matches, key=lambda match : 1 if match.state is None else 0):
+            show, _ = imgui.collapsing_header('{}'.format(match))
+            if match.state is not None:
+                imgui.text('Turn:')
+                imgui.push_font(bold)
+                if match.state['current'] == 0:
+                    imgui.bullet_text(match.state['players'][0])
+                    imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.bullet()
+                    imgui.pop_style_color()
+                    imgui.text(match.state['players'][1])
+                else:
+                    imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.bullet()
+                    imgui.pop_style_color()
+                    imgui.text(match.state['players'][0])
+                    imgui.bullet_text(match.state['players'][1])
+                imgui.pop_font()
+            if match.status != MatchStatus.PENDING:
+                print_key_value('Moves', match.moves)
+                if match.start is not None:
+                    if match.end is None:
+                        print_key_value('Time', '{0:.2f}s'.format(time.time() - match.start))
+                    else:
+                        print_key_value('Time', '{0:.2f}s'.format(match.end - match.start))
+            if match.status == MatchStatus.DONE:
+                print_key_value('Winner', match.winner)
+            if show:
+                pass
+        imgui.end()
+
+        imgui.show_test_window()
+        imgui.pop_font()
+
+        gl.glClearColor(.66, .66, .66, 1.)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        imgui.render()
+        impl.render(imgui.get_draw_data())
+        glfw.swap_buffers(window)
+    impl.shutdown()
     glfw.terminate()
