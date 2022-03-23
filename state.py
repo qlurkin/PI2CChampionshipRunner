@@ -64,6 +64,7 @@ class Match:
     def __getstate__(self):
         D = dict(self.__dict__)
         D['task'] = None
+        D['chat'] = None
         return D
 
 class ClientNotFoundError(Exception):
