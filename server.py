@@ -15,11 +15,12 @@ async def main(gameName: str, port: int):
     log.info('Game Server For {}'.format(gameName.capitalize()))
 
     Game = importlib.import_module('games.{}.game'.format(gameName)).Game
+    render = importlib.import_module('games.{}.render'.format(gameName)).render
     inscriptionTask = asyncio.create_task(inscription(port))
     championshipTask = asyncio.create_task(championship(Game))
     stateDumperTask = asyncio.create_task(dumpState())
 
-    await ui()
+    await ui(render)
 
     inscriptionTask.cancel()
     try:

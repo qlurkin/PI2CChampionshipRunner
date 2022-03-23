@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from jsonStream import FetchError, fetch
 from games import game
-from state import State, Match, Client
+from state import State, Match, Client, Chat, Message
 import asyncio
 import time
 from logs import getLogger, getMatchLogger
@@ -43,10 +43,6 @@ class Player:
 async def runMatch(Game: callable, match: Match):
     log = getMatchLogger(match)
 
-    def kill(player, msg, move):
-        log.warning(msg)
-        player.kill(msg, matchState, move)
-
     log.info('Match Started')
     match.start = time.time()
     players = [Player(client, i) for i, client in enumerate(State.getClients(match))]
@@ -54,6 +50,13 @@ async def runMatch(Game: callable, match: Match):
     matchState, next = Game(match.clients)
     matchState['current'] = 0
     match.state = matchState
+    chat = Chat()
+    match.chat = chat
+
+    def kill(player, msg, move):
+        log.warning(msg)
+        player.kill(msg, matchState, move)
+        chat.addMessage(Message(name="Admin", message=msg))
 
     try:
         while all([player.lives != 0 for player in players]):
@@ -70,7 +73,7 @@ async def runMatch(Game: callable, match: Match):
                 response, responseTime = await fetch(current.client, request)
 
                 if 'message' in response:
-                    pass
+                    chat.addMessage(Message(name=str(current), message=response['message']))
             
                 if response['response'] == 'move':
                     move = response['move']
@@ -85,23 +88,31 @@ async def runMatch(Game: callable, match: Match):
                         kill(current, 'This is a Bad Move. ' + str(e), matchState, move)
                 
                 if response['response'] == 'giveup':
-                    log.info('{} Give Up'.format(current))
+                    msg = '{} Give Up'.format(current)
+                    log.info(msg)
+                    chat.addMessage(Message(name="Admin", message=msg))
                     raise game.GameWin(other.index, matchState)
             except FetchError:
                 kill(current, '{} unavailable. Wait for {} seconds'.format(current, RETRY_TIME), matchState, None)
                 await asyncio.sleep(RETRY_TIME)
         
-        log.warning('{} has done too many Bad Moves'.format(current))
+        msg = '{} has done too many Bad Moves'.format(current)
+        log.warning(msg)
+        chat.addMessage(Message(name="Admin", message=msg))
         winner = other
 
     except game.GameWin as e:
         winner = players[e.winner]
         match.winner = str(winner)
-        log.info('Match Done. {} Won'.format(winner.client.name))
+        msg = 'Match Done. {} Won'.format(winner.client.name)
+        log.info(msg)
+        chat.addMessage(Message(name="Admin", message=msg))
 
     except game.GameDraw as e:
         winner = None
-        log.info('Match Done with no winner')
+        msg = 'Match Done with no winner'
+        log.info(msg)
+        chat.addMessage(Message(name="Admin", message=msg))
 
     match.state = None
     match.end = time.time()

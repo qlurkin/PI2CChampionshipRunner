@@ -13,18 +13,24 @@ from utils import clock
 
 log = getLogger('ui')
 
+textures = []
+
 def createTextureFromPIL(pilImage):
     data = pilImage.tobytes()
     width, height = pilImage.size
 
     texture = gl.glGenTextures(1)
+    textures.append(texture)
     gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
     gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
-    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA, width, height, 0, gl.GL_RGBA,
-                 gl.GL_UNSIGNED_BYTE, data)
+    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA, width, height, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, data)
 
     return texture, width, height
+
+def destroyTextures():
+    gl.glDeleteTextures(textures)
+    textures.clear()
 
 def impl_glfw_init():
     width, height = 1280, 720
@@ -54,7 +60,7 @@ def impl_glfw_init():
 
     return window
 
-async def ui():
+async def ui(render):
     log.info("UI started")
     imgui.create_context()
     window = impl_glfw_init()
@@ -109,8 +115,10 @@ async def ui():
         imgui.end()
 
         imgui.begin('Matches')
+        print_key_value('Remaining', '{}/{}'.format(State.remainingMatches, State.matchCount))
         for match in sorted(State.matches, key=lambda match : 1 if match.state is None else 0):
             show, _ = imgui.collapsing_header('{}'.format(match))
+            imgui.begin_group()
             if match.state is not None:
                 imgui.text('Turn:')
                 imgui.push_font(bold)
@@ -127,7 +135,7 @@ async def ui():
                     imgui.text(match.state['players'][0])
                     imgui.bullet_text(match.state['players'][1])
                 imgui.pop_font()
-            if match.status != MatchStatus.PENDING:
+            if match.status == MatchStatus.RUNNING or (match.status == MatchStatus.DONE and show):
                 print_key_value('Moves', match.moves)
                 if match.start is not None:
                     if match.end is None:
@@ -136,6 +144,34 @@ async def ui():
                         print_key_value('Time', '{0:.2f}s'.format(match.end - match.start))
             if match.status == MatchStatus.DONE:
                 print_key_value('Winner', match.winner)
+            imgui.end_group()
+            if match.state is not None:
+                imgui.same_line(position=150)
+                imgui.begin_group()
+                texture, width, height = createTextureFromPIL(render(match.state))
+                imgui.image(
+                    texture_id=texture,
+                    width=150,
+                    height=150,
+                    uv0=(0, 0),
+                    uv1=(1, 1),
+                    tint_color=(255, 255, 255, 255),
+                    border_color=(255, 255, 255, 128),
+                )
+                imgui.end_group()
+                if match.chat is not None:
+                    imgui.same_line()
+                    imgui.begin_child('chat {}'.format(match), 0, 150, border=True)
+                    for message in match.chat.messages:
+                        imgui.spacing()
+                        imgui.spacing()
+                        imgui.text(message.name)
+                        imgui.push_font(bold)
+                        imgui.text_wrapped(message.message)
+                        imgui.pop_font()
+                        imgui.set_scroll_here()
+                    imgui.end_child()
+            
             if show:
                 pass
         imgui.end()
@@ -148,5 +184,6 @@ async def ui():
         imgui.render()
         impl.render(imgui.get_draw_data())
         glfw.swap_buffers(window)
+        destroyTextures()
     impl.shutdown()
     glfw.terminate()

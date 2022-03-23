@@ -29,6 +29,21 @@ class Client:
         return self.name
 
 @dataclass
+class Message:
+    name: str
+    message: str
+
+
+class Chat:
+    def __init__(self):
+        self.messages = []
+
+    def addMessage(self, msg: Message):
+        self.messages.append(msg)
+        if len(self.messages) > 10:
+            self.messages.pop(0)
+
+@dataclass
 class Match:
     clients: list
     moves = 0
@@ -38,6 +53,7 @@ class Match:
     winner: str = None
     task = None
     state = None
+    chat = None
 
     def __init__(self, client1: Client, client2: Client):
         self.clients = [client1.name, client2.name]
