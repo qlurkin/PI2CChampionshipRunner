@@ -1,9 +1,9 @@
 from PIL import Image, ImageDraw
 from math import cos, sin, pi
 
-WIDTH = 600
-HEIGHT = 600
-SIZE = (WIDTH, HEIGHT)
+# WIDTH = 600
+# HEIGHT = 600
+# SIZE = (WIDTH, HEIGHT)
 LINEWIDTH = 5
 
 def hexagone(draw, center, radius, color, angle=0):
@@ -21,18 +21,21 @@ def drawCircle(draw, center, radius, fill, outline):
 	draw.ellipse([xc-radius, yc-radius, xc+radius, yc+radius], fill, outline, LINEWIDTH)
 
 
-def render(state):
+def render(state, side=600):
+	global LINEWIDTH
+	LINEWIDTH = round(6/600*side)
+	SIZE = (side, side)
 	res = Image.new('RGBA', SIZE, (50, 50, 50))
 	draw = ImageDraw.Draw(res)
 
-	hexagone(draw, (300, 300), 280, (150, 150, 150))
+	hexagone(draw, (300/600*side, 300/600*side), 280/600*side, (150, 150, 150))
 
-	size = 59
+	size = 59/600*side
 	lineVector = (size*cos(2*pi/3), size*sin(2*pi/3))
 	colVector = (size, 0)
 
-	xOffset = 300 - 4 * lineVector[0] - 4 * colVector[0]
-	yOffset = 300 - 4 * lineVector[1] - 4 * colVector[1]
+	xOffset = side/2 - 4 * lineVector[0] - 4 * colVector[0]
+	yOffset = side/2 - 4 * lineVector[1] - 4 * colVector[1]
 
 	def getCoord(line, col):
 		return (xOffset + line*lineVector[0] + col*colVector[0], yOffset + line*lineVector[1] + col*colVector[1])
@@ -40,7 +43,7 @@ def render(state):
 	for l in range(9):
 		for c in range(9):
 			if abs(c-l) < 5:
-				hexagone(draw, getCoord(l, c), 27, (150, 150, 150), pi/6)
+				hexagone(draw, getCoord(l, c), 27/600*side, (150, 150, 150), pi/6)
 
 	if state is None:
 		return res
@@ -50,17 +53,17 @@ def render(state):
 	for l in range(9):
 		for c in range(9):
 			if state['board'][l][c] == 'W':
-				drawCircle(draw, getCoord(l, c), 24, (255, 255, 255), (0, 0, 0))
+				drawCircle(draw, getCoord(l, c), 24/600*side, (255, 255, 255), (0, 0, 0))
 				white += 1
 			if state['board'][l][c] == 'B':
-				drawCircle(draw, getCoord(l, c), 24, (0, 0, 0), (255, 255, 255))
+				drawCircle(draw, getCoord(l, c), 24/600*side, (0, 0, 0), (255, 255, 255))
 				black += 1
 
 	for i in range(14 - white):
-		drawCircle(draw, (25 + 60 * i, 575), 24, (255, 255, 255), (0, 0, 0))
+		drawCircle(draw, (25/600*side + 60/600*side * i, 575/600*side), 24/600*side, (255, 255, 255), (0, 0, 0))
 
 	for i in range(14 - black):
-		drawCircle(draw, (575 - 60 * i, 25), 24, (0, 0, 0), (255, 255, 255))
+		drawCircle(draw, (575/600*side - 60/600*side * i, 25/600*side), 24/600*side, (0, 0, 0), (255, 255, 255))
 
 	return res
 

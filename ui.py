@@ -166,7 +166,7 @@ async def ui(gameName, render):
             if match.state is not None:
                 imgui.same_line(position=150)
                 imgui.begin_group()
-                texture, width, height = createTextureFromPIL(render(match.state))
+                texture, _, _ = createTextureFromPIL(render(match.state, 300))
                 imgui.image(
                     texture_id=texture,
                     width=150,
