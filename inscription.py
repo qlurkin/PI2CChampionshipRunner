@@ -32,7 +32,7 @@ async def processClient(reader, writer):
             client = Client(
                 name=request['name'],
                 port=request['port'],
-                matricules=request['matricules'],
+                matricules=set(request['matricules']),
                 ip=ip
             )
         except KeyError as e:

@@ -1,5 +1,5 @@
 import asyncio
-from jsonStream import readJSON, writeJSON
+from jsonStream import FetchError, readJSON, writeJSON
 import logging
 import time
 from jsonStream import fetch
@@ -22,7 +22,7 @@ async def ping(client):
 
         client.status = ClientStatus.READY
         return True
-    except (OSError, PingError) as e:
+    except (OSError, PingError, FetchError) as e:
         log.error(f'Ping Failed {client.ip}:{client.port} ({type(e).__name__}: {e})')
         client.status = ClientStatus.LOST
         return False

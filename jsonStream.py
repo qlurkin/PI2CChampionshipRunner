@@ -5,6 +5,7 @@ from socket import AI_NUMERICHOST
 import time
 import sys
 from logs import getLogger
+from status import ClientStatus
 
 log = getLogger('network')
 
@@ -53,6 +54,7 @@ async def fetch(client, request, baseTime = 0.25, retries=10):
             error = "Unable to Open Connection to {}:{}".format(client.ip, client.port)
             log.error(error)
             raise FetchError(error)
+
         await writeJSON(writer, request)
         start = time.time()
         response = await readJSON(reader)
@@ -60,6 +62,7 @@ async def fetch(client, request, baseTime = 0.25, retries=10):
         writer.close()
         await writer.wait_closed()
         return response, responseTime
-    except OSError as e:
+    except (OSError, FetchError) as e:
+        client.status = ClientStatus.LOST
         raise FetchError(str(e))
 

@@ -7,6 +7,12 @@ from logs import getLogger
 
 log = getLogger('championship')
 
+async def rescueClients():
+    for client in State.clients.values():
+        if client.status == ClientStatus.LOST:
+            if await ping(client):
+                client.status = ClientStatus.READY
+
 async def runAMatch(Game):
     for match in State.matches:
         if match.status == MatchStatus.PENDING:
@@ -43,3 +49,4 @@ async def championship(Game):
         await tic()
         await runAMatch(Game)
         await awaitAMatch()
+        await rescueClients()

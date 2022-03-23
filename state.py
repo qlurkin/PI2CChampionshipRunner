@@ -18,7 +18,7 @@ class Client:
     name: str
     port: int
     ip: str
-    matricules: list
+    matricules: set
     status: ClientStatus = ClientStatus.PENDING
     busy: bool = False
     badMoves: int = 0
@@ -66,19 +66,45 @@ class Match:
         D['task'] = None
         return D
 
+class ClientNotFoundError(Exception):
+    pass
+
 @dataclass
 class _State:
     clients: dict
     matches: list
     date: datetime = date
 
+    def getClientByMatricules(self, matricules: set):
+        for client in self.clients.values():
+            if client.matricules == matricules:
+                return client
+        raise ClientNotFoundError()
+
+    def removeClient(self, name):
+        for match in list(self.matches):
+            if name in match.clients:
+                self.matches.remove(match)
+        self.clients.pop(name)
+
     def addClient(self, client: Client):
-        if client.name in self.clients and self.clients[client.name].matricules != client.matricules:
-            raise StateError('Name \'{}\' Already Used'.format(client.name))
-        for other in self.clients.values():
-            self.matches.append(Match(client, other))
-            self.matches.append(Match(other, client))
+        try:
+            oldClient = self.getClientByMatricules(client.matricules)
+            if oldClient.name != client.name:
+                self.removeClient(oldClient.name)
+                return self.addClient(client)
+        except ClientNotFoundError:
+            if client.name in self.clients:
+                raise StateError('Name \'{}\' Already Used'.format(client.name))
+            for other in self.clients.values():
+                self.matches.append(Match(client, other))
+                self.matches.append(Match(other, client))
         self.clients[client.name] = client
+        
+        
+        
+            
+        
 
     def getClients(self, match: Match):
         return [self.clients[name] for name in match.clients]

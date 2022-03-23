@@ -4,7 +4,7 @@ import imgui
 from imgui.integrations.glfw import GlfwRenderer
 from state import State
 import time
-from status import MatchStatus
+from status import ClientStatus, MatchStatus
 
 FONT_SIZE = 14
 
@@ -102,6 +102,9 @@ async def ui(render):
 
         imgui.begin("Clients")
         for client in sorted(State.clients.values(), key=lambda client : -client.points):
+            if client.status != ClientStatus.READY:
+                imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0, 1.0)
+
             show, _ = imgui.collapsing_header('{}'.format(client.name))
             imgui.columns(count=2, border=False)
             print_key_value('IP', '{}:{}'.format(client.ip, client.port))
@@ -109,9 +112,14 @@ async def ui(render):
             print_key_value('Points', client.points)
             imgui.columns(1)
             if show:
+                print_key_value('Matricules', ', '.join(client.matricules))
+                print_key_value('Status', str(client.status).split('.')[1])
                 print_key_value('Played', client.matchCount)
                 if client.matchCount != 0:
                     print_key_value('Avg Bad Moves', '{0:.2f}'.format(client.badMoves/client.matchCount))
+
+            if client.status != ClientStatus.READY:
+                imgui.pop_style_color()
         imgui.end()
 
         imgui.begin('Matches')
@@ -176,7 +184,8 @@ async def ui(render):
                 pass
         imgui.end()
 
-        imgui.show_test_window()
+        #imgui.show_test_window()
+        
         imgui.pop_font()
 
         gl.glClearColor(.66, .66, .66, 1.)

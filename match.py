@@ -5,6 +5,7 @@ from state import State, Match, Client, Chat, Message
 import asyncio
 import time
 from logs import getLogger, getMatchLogger
+from status import ClientStatus
 
 MOVE_TIME_LIMIT = 10
 RETRY_TIME = 5
@@ -71,6 +72,7 @@ async def runMatch(Game: callable, match: Match):
                 }
                 
                 response, responseTime = await fetch(current.client, request)
+                current.client.status = ClientStatus.READY
 
                 if 'message' in response:
                     chat.addMessage(Message(name=str(current), message=response['message']))
@@ -93,13 +95,13 @@ async def runMatch(Game: callable, match: Match):
                     chat.addMessage(Message(name="Admin", message=msg))
                     raise game.GameWin(other.index, matchState)
             except FetchError:
-                kill(current, '{} unavailable. Wait for {} seconds'.format(current, RETRY_TIME), matchState, None)
+                kill(current, '{} unavailable. Wait for {} seconds'.format(current, RETRY_TIME), None)
                 await asyncio.sleep(RETRY_TIME)
         
         msg = '{} has done too many Bad Moves'.format(current)
         log.warning(msg)
         chat.addMessage(Message(name="Admin", message=msg))
-        winner = other
+        raise game.GameWin(other.index, matchState)
 
     except game.GameWin as e:
         winner = players[e.winner]
