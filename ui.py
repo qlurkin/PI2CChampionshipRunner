@@ -2,7 +2,7 @@ import glfw
 import OpenGL.GL as gl
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
-from state import State
+from state import State, Match
 import time
 from status import ClientStatus, MatchStatus
 
@@ -59,6 +59,14 @@ def impl_glfw_init():
         exit(1)
 
     return window
+
+def matchSortKey(match: Match):
+    if match.status == MatchStatus.RUNNING:
+        return 0
+    if match.status == MatchStatus.PENDING:
+        return 1
+    if match.status == MatchStatus.DONE:
+        return 2
 
 async def ui(render):
     log.info("UI started")
@@ -124,11 +132,11 @@ async def ui(render):
 
         imgui.begin('Matches')
         print_key_value('Remaining', '{}/{}'.format(State.remainingMatches, State.matchCount))
-        for match in sorted(State.matches, key=lambda match : 1 if match.state is None else 0):
+        for match in sorted(State.matches, key=matchSortKey):
             show, _ = imgui.collapsing_header('{}'.format(match))
             imgui.begin_group()
             if match.state is not None:
-                imgui.text('Turn:')
+                imgui.text('Clients:')
                 imgui.push_font(bold)
                 if match.state['current'] == 0:
                     imgui.bullet_text(match.state['players'][0])
@@ -150,6 +158,8 @@ async def ui(render):
                         print_key_value('Time', '{0:.2f}s'.format(time.time() - match.start))
                     else:
                         print_key_value('Time', '{0:.2f}s'.format(match.end - match.start))
+            if match.status == MatchStatus.RUNNING or show:
+                print_key_value('Status', str(match.status).split('.')[1])
             if match.status == MatchStatus.DONE:
                 print_key_value('Winner', match.winner)
             imgui.end_group()
