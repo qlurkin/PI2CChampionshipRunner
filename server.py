@@ -20,7 +20,7 @@ async def main(gameName: str, port: int):
     championshipTask = asyncio.create_task(championship(Game))
     stateDumperTask = asyncio.create_task(dumpState())
 
-    await ui(render)
+    await ui(gameName, render)
 
     inscriptionTask.cancel()
     try:

@@ -32,9 +32,9 @@ def destroyTextures():
     gl.glDeleteTextures(textures)
     textures.clear()
 
-def impl_glfw_init():
+def impl_glfw_init(title):
     width, height = 1280, 720
-    window_name = "minimal ImGui/GLFW3 example"
+    window_name = title
 
     if not glfw.init():
         print("Could not initialize OpenGL context")
@@ -68,10 +68,10 @@ def matchSortKey(match: Match):
     if match.status == MatchStatus.DONE:
         return 2
 
-async def ui(render):
+async def ui(gameName, render):
     log.info("UI started")
     imgui.create_context()
-    window = impl_glfw_init()
+    window = impl_glfw_init('{} Runner'.format(gameName.capitalize()))
     impl = GlfwRenderer(window)
     io = imgui.get_io()
     
