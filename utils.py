@@ -27,12 +27,14 @@ async def ping(client):
         client.status = ClientStatus.LOST
         return False
 
-def clock(fps):
+def clock(fps=60, period=None):
+    if period is None:
+        period = 1.0/fps
     frameStart = time.time()
     async def tic():
         nonlocal frameStart
         frameTime = time.time() - frameStart
-        await asyncio.sleep(max(1.0/fps - frameTime, 0))
+        await asyncio.sleep(max(period - frameTime, 0))
         frameStart = time.time()
     return tic
 

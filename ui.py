@@ -114,11 +114,11 @@ async def ui(gameName, render):
                 imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0, 1.0)
 
             show, _ = imgui.collapsing_header('{}'.format(client.name))
-            imgui.columns(count=2, border=False)
+            
             print_key_value('IP', '{}:{}'.format(client.ip, client.port))
-            imgui.next_column()
+            imgui.same_line(spacing=30)
             print_key_value('Points', client.points)
-            imgui.columns(1)
+            
             if show:
                 print_key_value('Matricules', ', '.join(client.matricules))
                 print_key_value('Status', str(client.status).split('.')[1])

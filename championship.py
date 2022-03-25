@@ -13,7 +13,7 @@ async def rescueClients():
             if await ping(client):
                 client.status = ClientStatus.READY
 
-async def runAMatch(Game):
+async def runAMatch(Game, tempo):
     for match in State.matches:
         if match.status == MatchStatus.PENDING:
             clients = State.getClients(match)
@@ -23,7 +23,7 @@ async def runAMatch(Game):
                         match.status = MatchStatus.RUNNING
                         for client in clients:
                             client.busy = True
-                        match.task = asyncio.create_task(runMatch(Game, match))
+                        match.task = asyncio.create_task(runMatch(Game, match, tempo))
                         match.handled = False
 
 async def awaitAMatch():
@@ -42,11 +42,11 @@ async def awaitAMatch():
                     log.info('Handled: {}'.format(match))
                     log.info('Remaining: {}/{}'.format(State.remainingMatches, State.matchCount))
 
-async def championship(Game):
+async def championship(Game, tempo):
     log.info('Championship Task Started')
     tic = clock(5)
     while True:
         await tic()
-        await runAMatch(Game)
+        await runAMatch(Game, tempo)
         await awaitAMatch()
         await rescueClients()

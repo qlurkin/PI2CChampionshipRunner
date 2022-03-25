@@ -6,6 +6,7 @@ import asyncio
 import time
 from logs import getLogger, getMatchLogger
 from status import ClientStatus
+from utils import clock
 
 MOVE_TIME_LIMIT = 10
 RETRY_TIME = 5
@@ -41,7 +42,7 @@ class Player:
     def __str__(self):
         return str(self.client)
 
-async def runMatch(Game: callable, match: Match):
+async def runMatch(Game: callable, match: Match, tempo: float):
     log = getMatchLogger(match)
 
     log.info('Match Started')
@@ -60,7 +61,9 @@ async def runMatch(Game: callable, match: Match):
         chat.addMessage(Message(name="Admin", message=msg))
 
     try:
+        tic = clock(period=tempo)
         while all([player.lives != 0 for player in players]):
+            await tic()
             try:
                 current = players[matchState['current']]
                 other = players[(matchState['current']+1)%2]
