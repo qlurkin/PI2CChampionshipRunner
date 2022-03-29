@@ -40,6 +40,6 @@ if __name__ == '__main__':
         ]
     }
 
-    image = render(state)
+    image = render(state, 600)
 
     image.save('othello.png')
