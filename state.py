@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
 from utils import clock
-import asyncio
 from logs import getLogger, stateFilename, date
 from status import ClientStatus, MatchStatus
-import json
 import jsonpickle
 from datetime import datetime
 

@@ -60,13 +60,16 @@ def impl_glfw_init(title):
 
     return window
 
-def matchSortKey(match: Match):
-    if match.status == MatchStatus.RUNNING:
-        return 0
-    if match.status == MatchStatus.PENDING:
-        return 1
-    if match.status == MatchStatus.DONE:
-        return 2
+def matchSortKey():
+    T = time.time()
+    def key(match: Match):
+        if match.status == MatchStatus.RUNNING:
+            return - (T - match.start)
+        if match.status == MatchStatus.PENDING:
+            return 1
+        if match.status == MatchStatus.DONE:
+            return 2
+    return key
 
 async def ui(gameName, render):
     log.info("UI started")
@@ -109,6 +112,7 @@ async def ui(gameName, render):
             imgui.end_main_menu_bar()
 
         imgui.begin("Clients")
+        print_key_value('Count', len(State.clients))
         for client in sorted(State.clients.values(), key=lambda client : -client.points):
             if client.status != ClientStatus.READY:
                 imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0, 1.0)
@@ -132,7 +136,7 @@ async def ui(gameName, render):
 
         imgui.begin('Matches')
         print_key_value('Remaining', '{}/{}'.format(State.remainingMatches, State.matchCount))
-        for match in sorted(State.matches, key=matchSortKey):
+        for match in sorted(State.matches, key=matchSortKey()):
             show, _ = imgui.collapsing_header('{}'.format(match))
             imgui.begin_group()
             if match.state is not None:

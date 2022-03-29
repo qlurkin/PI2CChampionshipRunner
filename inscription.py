@@ -17,7 +17,7 @@ async def pingInOneSecond(client):
 
 async def processClient(reader, writer):
     request = await readJSON(reader)
-    ip, port = reader._transport.get_extra_info('peername')
+    ip, port = writer.get_extra_info('peername')
 
     try:
         try:
