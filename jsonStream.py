@@ -1,9 +1,6 @@
 import json
 import asyncio
-import logging
-from socket import AI_NUMERICHOST
 import time
-import sys
 from logs import getLogger
 from status import ClientStatus
 

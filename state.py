@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Any
 from utils import clock
 from logs import getLogger, stateFilename, date
 from status import ClientStatus, MatchStatus

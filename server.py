@@ -5,13 +5,11 @@ from ui import ui
 from state import dumpState
 import importlib
 import argparse
-from aiodebug import log_slow_callbacks
 from logs import getLogger
 
 log = getLogger('server')
 
 async def main(gameName: str, port: int, tempo: float):
-    #log_slow_callbacks.enable(0.5)
     log.info('Game Server For {}'.format(gameName.capitalize()))
 
     Game = importlib.import_module('games.{}.game'.format(gameName)).Game

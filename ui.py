@@ -63,8 +63,10 @@ def impl_glfw_init(title):
 def matchSortKey():
     T = time.time()
     def key(match: Match):
-        if match.status == MatchStatus.RUNNING:
+        if match.status == MatchStatus.RUNNING and match.state is not None:
             return - (T - match.start)
+        if match.status == MatchStatus.RUNNING:
+            return 0
         if match.status == MatchStatus.PENDING:
             return 1
         if match.status == MatchStatus.DONE:

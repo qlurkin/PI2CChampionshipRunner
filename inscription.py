@@ -1,5 +1,4 @@
 import asyncio
-from mmap import PROT_READ
 from jsonStream import readJSON, writeJSON
 from state import State, Client, StateError
 from logs import getLogger
