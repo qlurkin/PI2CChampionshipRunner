@@ -9,11 +9,20 @@ log = getLogger('network')
 class NotAJSONObject(Exception):
     pass
 
+class FetchError(Exception):
+    pass
+
+class ReadError(Exception):
+    pass
+
 async def readJSON(reader: asyncio.StreamReader):
     message = ''
     data = ''
     while True:
+        await asyncio.sleep(0)
         chunk = await reader.read(100)
+        if len(chunk) == 0:
+            raise ReadError('Distant socket closed')
         message += chunk.decode('utf8')
     
         if len(message) > 0 and message[0] != '{':
@@ -33,10 +42,7 @@ async def writeJSON(writer: asyncio.StreamWriter, obj):
     writer.write(message)
     await writer.drain()
 
-class FetchError(Exception):
-    pass
-
-async def fetch(client, request, baseTime = 0.25, retries=10):
+async def fetch(client, request, baseTime = 0.25, retries=10, timeout=10):
     try:
         for i in range(retries):
             try:
@@ -51,15 +57,18 @@ async def fetch(client, request, baseTime = 0.25, retries=10):
             error = "Unable to Open Connection to {}:{}".format(client.ip, client.port)
             log.error(error)
             raise FetchError(error)
-
-        await writeJSON(writer, request)
+        coro = writeJSON(writer, request)
+        await asyncio.wait_for(coro, timeout=timeout)
+        
         start = time.time()
-        response = await readJSON(reader)
+        
+        coro = readJSON(reader)
+        response = await asyncio.wait_for(coro, timeout=timeout)
         responseTime = time.time() - start
         writer.close()
         await writer.wait_closed()
         return response, responseTime
-    except (OSError, FetchError) as e:
+    except (OSError, FetchError, asyncio.TimeoutError, ReadError) as e:
         client.status = ClientStatus.LOST
         raise FetchError(str(e))
 

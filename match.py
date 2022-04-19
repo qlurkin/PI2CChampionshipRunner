@@ -74,7 +74,7 @@ async def runMatch(Game: callable, match: Match, tempo: float):
                     'state': matchState
                 }
                 
-                response, responseTime = await fetch(current.client, request)
+                response, responseTime = await fetch(current.client, request, timeout=MOVE_TIME_LIMIT*1.1)
                 current.client.status = ClientStatus.READY
 
                 if 'message' in response:
