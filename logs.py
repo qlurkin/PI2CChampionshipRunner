@@ -14,7 +14,7 @@ matchFileFormatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
 LOGS_FOLDER = 'logs'
 
 def getDateStr():
-    return date.strftime("%d-%m-%Y_%H:%M:%S")
+    return date.strftime("%d-%m-%Y_%Hh%M.%Ss")
 
 if not os.path.exists(LOGS_FOLDER):
         os.mkdir(LOGS_FOLDER)
