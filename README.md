@@ -20,7 +20,7 @@ Les réponses contiendront toujours une clé "response" et pourront également c
 
 ## Installer les dépendances
 
-Pour plus de simplicité, utilisez Python 3.9 maximum.
+Pour plus de simplicité, utilisez Python 3.9 maximum. Cela évite d'avoir à compiler certaines des dépendances.
 
 ```shell
 python -m pip install -r requirements.txt
