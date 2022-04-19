@@ -18,6 +18,12 @@ Les requêtes contiendront toujours une clé "request" et pourront contenir d'au
 
 Les réponses contiendront toujours une clé "response" et pourront également contenir d'autre clés en fonction de la réponse.
 
+## Installer les dépendances
+
+```shell
+python -m pip install -r requirements.txt
+```
+
 ## Démarrer le serveur
 
 ```shell
