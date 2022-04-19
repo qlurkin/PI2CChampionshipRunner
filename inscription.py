@@ -47,7 +47,7 @@ async def processClient(reader, writer):
         asyncio.create_task(pingInOneSecond(client))
     except InscriptionError as e:
         log.error(e)
-        await writeJSON(writer, {'response': 'error', 'error': e})
+        await writeJSON(writer, {'response': 'error', 'error': str(e)})
     finally:
         writer.close()
         await writer.wait_closed()
