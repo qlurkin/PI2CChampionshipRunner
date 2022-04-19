@@ -36,6 +36,8 @@ async def processClient(reader, writer):
             )
         except KeyError as e:
             raise InscriptionError('Key \'{}\' Missing'.format(e))
+        except Exception as e:
+            raise InscriptionError(str(e))
 
         try:
             State.addClient(client)
