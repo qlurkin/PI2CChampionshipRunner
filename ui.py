@@ -80,16 +80,16 @@ async def ui(gameName, render):
     impl = GlfwRenderer(window)
     io = imgui.get_io()
     
-    regular = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Regular Nerd Font Complete.ttf', FONT_SIZE)
-    bold = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Bold Nerd Font Complete.ttf', FONT_SIZE)
-    impl.refresh_font_texture()
+    #regular = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Regular Nerd Font Complete.ttf', FONT_SIZE)
+    #bold = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Bold Nerd Font Complete.ttf', FONT_SIZE)
+    #impl.refresh_font_texture()
 
     def print_key_value(key, value):
         imgui.text(str(key)+':') 
         imgui.same_line()
-        imgui.push_font(bold)
+        #imgui.push_font(bold)
         imgui.text(str(value))
-        imgui.pop_font()
+        #imgui.pop_font()
 
     tic = clock(60)
     while not glfw.window_should_close(window):
@@ -98,7 +98,7 @@ async def ui(gameName, render):
         impl.process_inputs()
 
         imgui.new_frame()
-        imgui.push_font(regular)
+        #imgui.push_font(regular)
 
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
@@ -143,7 +143,7 @@ async def ui(gameName, render):
             imgui.begin_group()
             if match.state is not None:
                 imgui.text('Clients:')
-                imgui.push_font(bold)
+                #imgui.push_font(bold)
                 if match.state['current'] == 0:
                     imgui.bullet_text(match.state['players'][0])
                     imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
@@ -156,7 +156,7 @@ async def ui(gameName, render):
                     imgui.pop_style_color()
                     imgui.text(match.state['players'][0])
                     imgui.bullet_text(match.state['players'][1])
-                imgui.pop_font()
+                #imgui.pop_font()
             if match.status == MatchStatus.RUNNING or (match.status == MatchStatus.DONE and show):
                 print_key_value('Moves', match.moves)
                 if match.start is not None:
@@ -190,9 +190,9 @@ async def ui(gameName, render):
                         imgui.spacing()
                         imgui.spacing()
                         imgui.text(message.name)
-                        imgui.push_font(bold)
+                        #imgui.push_font(bold)
                         imgui.text_wrapped(message.message)
-                        imgui.pop_font()
+                        #imgui.pop_font()
                         imgui.set_scroll_here()
                     imgui.end_child()
             
@@ -202,7 +202,7 @@ async def ui(gameName, render):
 
         #imgui.show_test_window()
         
-        imgui.pop_font()
+        #imgui.pop_font()
 
         gl.glClearColor(.66, .66, .66, 1.)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
