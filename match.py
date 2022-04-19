@@ -90,7 +90,7 @@ async def runMatch(Game: callable, match: Match, tempo: float):
                         if responseTime > MOVE_TIME_LIMIT:
                             kill(current, '{} take too long to respond: {}s'.format(current, responseTime), move)
                     except game.BadMove as e:
-                        kill(current, 'This is a Bad Move. ' + str(e), matchState, move)
+                        kill(current, 'This is a Bad Move. ' + str(e), move)
                 
                 if response['response'] == 'giveup':
                     msg = '{} Give Up'.format(current)
