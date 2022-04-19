@@ -21,7 +21,7 @@ async def processClient(reader, writer):
     try:
         try:
             if request['request'] != 'subscribe':
-                raise InscriptionError('Request \'{}\' Unsupported')
+                raise InscriptionError('Request \'{}\' Unsupported'.format(request['request']))
         except KeyError as e:
             raise InscriptionError('Key \'{}\' Missing'.format(e))
 
