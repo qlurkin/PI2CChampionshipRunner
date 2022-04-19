@@ -100,6 +100,10 @@ async def runMatch(Game: callable, match: Match, tempo: float):
             except FetchError:
                 kill(current, '{} unavailable. Wait for {} seconds'.format(current, RETRY_TIME), None)
                 await asyncio.sleep(RETRY_TIME)
+            except Exception as e:
+                kill(current, 'Error in the turn of {}: {}. Wait for {} seconds'.format(current, str(e), RETRY_TIME), None)
+                await asyncio.sleep(RETRY_TIME)
+
         
         msg = '{} has done too many Bad Moves'.format(current)
         log.warning(msg)
