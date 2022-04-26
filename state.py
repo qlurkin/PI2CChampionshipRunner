@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from utils import clock
 from logs import getLogger, stateFilename, date
@@ -63,6 +64,22 @@ class Match:
         D['task'] = None
         D['chat'] = None
         return D
+
+    async def reset(self):
+        if self.task is not None:
+            self.task.cancel('User Cancelled')
+            try:
+                await self.task
+            except asyncio.CancelledError as e:
+                self.chat.addMessage(Message('Admin', str(e)))
+        self.moves = 0
+        self.start = None
+        self.end = None
+        self.status = MatchStatus.PENDING
+        self.winner = None
+        self.task = None
+        self.state = None
+        self.chat = None
 
 class ClientNotFoundError(Exception):
     pass
