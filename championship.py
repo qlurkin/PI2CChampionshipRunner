@@ -8,7 +8,8 @@ from logs import getLogger
 log = getLogger('championship')
 
 async def rescueClients():
-    for client in State.clients.values():
+    clients = list(State.clients.values())
+    for client in clients:
         if client.status == ClientStatus.LOST:
             if await ping(client):
                 client.status = ClientStatus.READY
