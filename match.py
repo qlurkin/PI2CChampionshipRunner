@@ -5,7 +5,7 @@ from state import State, Match, Client, Chat, Message
 import asyncio
 import time
 from logs import getLogger, getMatchLogger
-from status import ClientStatus
+from status import ClientStatus, MatchStatus
 from utils import clock
 
 MOVE_TIME_LIMIT = 10
@@ -44,6 +44,7 @@ class Player:
 
 async def runMatch(Game: callable, match: Match, tempo: float):
     log = getMatchLogger(match)
+    match.status = MatchStatus.RUNNING
 
     log.info('Match Started')
     match.start = time.time()
@@ -125,11 +126,15 @@ async def runMatch(Game: callable, match: Match, tempo: float):
 
     match.state = None
     match.end = time.time()
-    for player in players:
+    for i, player in enumerate(players):
         client = player.client
         client.matchCount += 1
         client.badMoves += player.badMoves
+        match.badMoves[i] = player.badMoves
         if winner is None:
-            client.points += 1
+            match.points[i] = 1
         elif winner is player:
-            client.points += 3
+            match.points[i] = 3
+        client.points += match.points[i]
+        
+    match.status = MatchStatus.DONE

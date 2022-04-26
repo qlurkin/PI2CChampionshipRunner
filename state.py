@@ -44,6 +44,8 @@ class Chat:
 @dataclass
 class Match:
     clients: list
+    badMoves: list
+    points: list
     moves = 0
     start = None
     end = None
@@ -55,6 +57,8 @@ class Match:
 
     def __init__(self, client1: Client, client2: Client):
         self.clients = [client1.name, client2.name]
+        self.badMoves = [0, 0]
+        self.points = [0, 0]
 
     def __str__(self):
         return '{} VS {}'.format(*self.clients)
@@ -67,11 +71,21 @@ class Match:
 
     async def reset(self):
         if self.task is not None:
-            self.task.cancel('User Cancelled')
+            task = self.task
+            self.task = None
+            task.cancel('User Cancelled')
             try:
-                await self.task
+                await task
             except asyncio.CancelledError as e:
                 self.chat.addMessage(Message('Admin', str(e)))
+            finally:
+                for client in State.getClients(self):
+                    client.busy = False
+        if self.status == MatchStatus.DONE:
+            for i, client in enumerate(State.getClients(self)):
+                client.matchCount -= 1
+                client.badMoves -= self.badMoves[i]
+                client.points -= self.points[i]
         self.moves = 0
         self.start = None
         self.end = None
@@ -80,6 +94,8 @@ class Match:
         self.task = None
         self.state = None
         self.chat = None
+        self.badMoves = [0, 0]
+        self.points = [0, 0]
 
 class ClientNotFoundError(Exception):
     pass

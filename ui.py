@@ -139,6 +139,7 @@ async def ui(gameName, render):
         imgui.begin('Matches')
         print_key_value('Remaining', '{}/{}'.format(State.remainingMatches, State.matchCount))
         for match in sorted(State.matches, key=matchSortKey()):
+            imgui.push_id(str(match))
             show, _ = imgui.collapsing_header('{}'.format(match))
             imgui.begin_group()
             if match.state is not None:
@@ -168,6 +169,9 @@ async def ui(gameName, render):
                 print_key_value('Status', str(match.status).split('.')[1])
             if match.status == MatchStatus.DONE:
                 print_key_value('Winner', match.winner)
+            if match.status == MatchStatus.RUNNING or show:
+                if imgui.button("Reset"):
+                    await match.reset()
             imgui.end_group()
             if match.state is not None:
                 imgui.same_line(position=150)
@@ -195,9 +199,7 @@ async def ui(gameName, render):
                         #imgui.pop_font()
                         imgui.set_scroll_here()
                     imgui.end_child()
-            
-            if show:
-                pass
+            imgui.pop_id()
         imgui.end()
 
         #imgui.show_test_window()
