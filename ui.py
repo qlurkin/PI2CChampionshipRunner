@@ -116,6 +116,7 @@ async def ui(gameName, render):
         imgui.begin("Clients")
         print_key_value('Count', len(State.clients))
         for client in sorted(State.clients.values(), key=lambda client : -client.points):
+            imgui.push_id(str(client.matricules))
             if client.status != ClientStatus.READY:
                 imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0, 1.0)
 
@@ -131,9 +132,12 @@ async def ui(gameName, render):
                 print_key_value('Played', client.matchCount)
                 if client.matchCount != 0:
                     print_key_value('Avg Bad Moves', '{0:.2f}'.format(client.badMoves/client.matchCount))
+                if imgui.button('Unsubscribe'):
+                    await State.removeClient(client.name)
 
             if client.status != ClientStatus.READY:
                 imgui.pop_style_color()
+            imgui.pop_id()
         imgui.end()
 
         imgui.begin('Matches')
