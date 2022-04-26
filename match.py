@@ -97,11 +97,11 @@ async def runMatch(Game: callable, match: Match, tempo: float):
                     log.info(msg)
                     chat.addMessage(Message(name="Admin", message=msg))
                     raise game.GameWin(other.index, matchState)
-            except FetchError:
-                kill(current, '{} unavailable. Wait for {} seconds'.format(current, RETRY_TIME), None)
+            except FetchError as e:
+                kill(current, '{} unavailable ({}). Wait for {} seconds'.format(current, e, RETRY_TIME), None)
                 await asyncio.sleep(RETRY_TIME)
             except (TypeError, KeyError) as e:
-                kill(current, 'Error in the turn of {}: {}. Wait for {} seconds'.format(current, str(e), RETRY_TIME), None)
+                kill(current, 'Error in the turn of {}: {}. Wait for {} seconds'.format(current, e, RETRY_TIME), None)
                 await asyncio.sleep(RETRY_TIME)
 
         
