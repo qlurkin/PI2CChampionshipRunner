@@ -15,7 +15,8 @@ async def rescueClients():
                 client.status = ClientStatus.READY
 
 async def runAMatch(Game, tempo):
-    for match in State.matches:
+    matches = list(State.matches)
+    for match in matches:
         if match.status == MatchStatus.PENDING:
             clients = State.getClients(match)
             if all([client.status == ClientStatus.READY for client in clients]):
@@ -26,7 +27,8 @@ async def runAMatch(Game, tempo):
                         match.task = asyncio.create_task(runMatch(Game, match, tempo))
 
 async def awaitAMatch():
-    for match in State.matches:
+    matches = list(State.matches)
+    for match in matches:
         if match.task is not None and match.task.done():
                 try:
                     await match.task
