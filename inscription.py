@@ -55,6 +55,6 @@ async def processClient(reader, writer):
         await writer.wait_closed()
 
 async def inscription(port):
-    log.info('Inscription Task Started')
+    log.info('Inscription Task Started. Listen on port {}'.format(port))
     await asyncio.start_server(processClient, '0.0.0.0', port)
 
