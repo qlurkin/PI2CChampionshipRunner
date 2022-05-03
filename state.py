@@ -5,6 +5,7 @@ from logs import getLogger, stateFilename, date
 from status import ClientStatus, MatchStatus
 import jsonpickle
 from datetime import datetime
+import random
 
 log = getLogger('state')
 
@@ -132,8 +133,9 @@ class _State:
             if client.name in self.clients:
                 raise StateError('Name \'{}\' Already Used'.format(client.name))
             for other in self.clients.values():
-                self.matches.append(Match(client, other))
-                self.matches.append(Match(other, client))
+                players = [other, client]
+                random.shuffle(players)
+                self.matches.append(Match(*players))
         self.clients[client.name] = client
         
         
