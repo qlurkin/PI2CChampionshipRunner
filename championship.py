@@ -41,7 +41,7 @@ async def awaitAMatch():
 
 async def championship(Game, tempo):
     log.info('Championship Task Started')
-    tic = clock(5)
+    tic = clock(1)
     while True:
         await tic()
         await runAMatch(Game, tempo)
