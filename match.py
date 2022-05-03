@@ -78,8 +78,8 @@ async def runMatch(Game: callable, match: Match, tempo: float):
                 response, responseTime = await fetch(current.client, request, timeout=MOVE_TIME_LIMIT*1.1)
                 current.client.status = ClientStatus.READY
 
-                if 'message' in response:
-                    chat.addMessage(Message(name=str(current), message=response['message']))
+                if 'message' in response :
+                    chat.addMessage(Message(name=str(current), message=str(response['message'])))
             
                 if response['response'] == 'move':
                     move = response['move']
@@ -93,11 +93,14 @@ async def runMatch(Game: callable, match: Match, tempo: float):
                     except game.BadMove as e:
                         kill(current, 'This is a Bad Move. ' + str(e), move)
                 
-                if response['response'] == 'giveup':
+                elif response['response'] == 'giveup':
                     msg = '{} Give Up'.format(current)
                     log.info(msg)
                     chat.addMessage(Message(name="Admin", message=msg))
                     raise game.GameWin(other.index, matchState)
+
+                else:
+                    kill(current, 'response[\'response\'] can\'t be {}'.format(response['response']), None)
             except FetchError as e:
                 kill(current, '{} unavailable ({}). Wait for {} seconds'.format(current, e, RETRY_TIME), None)
                 await asyncio.sleep(RETRY_TIME)
