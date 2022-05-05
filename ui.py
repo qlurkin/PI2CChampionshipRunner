@@ -85,11 +85,15 @@ async def ui(gameName, render):
     #impl.refresh_font_texture()
 
     def print_key_value(key, value):
-        imgui.text(str(key)+':') 
+        imgui.push_style_color(imgui.COLOR_TEXT, 0.8, 0.8, 0.8)
+        imgui.text(str(key)+':')
+        imgui.pop_style_color()
         imgui.same_line()
         #imgui.push_font(bold)
+        
         imgui.text(str(value))
         #imgui.pop_font()
+        
 
     tic = clock(60)
     while not glfw.window_should_close(window):
