@@ -56,5 +56,4 @@ async def main():
     print(L)
 
 asyncio.run(main())
-#print(greatestPowerOfTwoLessThan(4))
 print(c)
