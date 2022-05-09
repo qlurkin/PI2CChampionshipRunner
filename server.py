@@ -44,7 +44,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gameName', help='The name of the game')
     parser.add_argument('-p', '--port', type=int, help='The port the server use to listen for subscription', default=3000)
-    parser.add_argument('-t', '--tempo', type=float, help='value in second. Each move will be, at least, visible during this time.', default=0.5)
+    parser.add_argument('-t', '--tempo', type=float, help='value in second. Each move will be, at least, visible during this time.', default=0.3)
     args = parser.parse_args()
 
     asyncio.run(main(args.gameName, args.port, args.tempo))
