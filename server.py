@@ -9,13 +9,13 @@ from logs import getLogger
 
 log = getLogger('server')
 
-async def main(gameName: str, port: int, tempo: float):
+async def main(gameName: str, port: int, tempo: float, parall: bool):
     log.info('Game Server For {}'.format(gameName.capitalize()))
 
     Game = importlib.import_module('games.{}.game'.format(gameName)).Game
     render = importlib.import_module('games.{}.render'.format(gameName)).render
     inscriptionTask = asyncio.create_task(inscription(port))
-    championshipTask = asyncio.create_task(championship(Game, tempo))
+    championshipTask = asyncio.create_task(championship(Game, tempo, parall))
     stateDumperTask = asyncio.create_task(dumpState())
 
     await ui(gameName, render)
@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument('gameName', help='The name of the game')
     parser.add_argument('-p', '--port', type=int, help='The port the server use to listen for subscription', default=3000)
     parser.add_argument('-t', '--tempo', type=float, help='value in second. Each move will be, at least, visible during this time.', default=0.3)
+    parser.add_argument('--parall', action=argparse.BooleanOptionalAction, help='Don\'t run match in parallele', default=True)
     args = parser.parse_args()
 
-    asyncio.run(main(args.gameName, args.port, args.tempo))
+    asyncio.run(main(args.gameName, args.port, args.tempo, args.parall))

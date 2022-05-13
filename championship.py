@@ -14,9 +14,11 @@ async def rescueClients():
             if await ping(client):
                 client.status = ClientStatus.READY
 
-async def runAMatch(Game, tempo):
+async def runAMatch(Game, tempo, parall):
     matches = list(State.matches)
     for match in matches:
+        if (not parall) and State.runningMatches > 0:
+            return
         if match.status == MatchStatus.PENDING:
             clients = State.getClients(match)
             if all([client.status == ClientStatus.READY for client in clients]):
@@ -41,11 +43,11 @@ async def awaitAMatch():
                     log.debug('Handled: {}'.format(match))
                     log.info('Remaining: {}/{}'.format(State.remainingMatches, State.matchCount))
 
-async def championship(Game, tempo):
+async def championship(Game, tempo, parall):
     log.info('Championship Task Started')
     tic = clock(5)
     while True:
         await tic()
-        await runAMatch(Game, tempo)
+        await runAMatch(Game, tempo, parall)
         await awaitAMatch()
         await rescueClients()

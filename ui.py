@@ -145,7 +145,7 @@ async def ui(gameName, render):
         imgui.end()
 
         imgui.begin('Matches')
-        print_key_value('Remaining', '{}/{}'.format(State.remainingMatches, State.matchCount))
+        print_key_value('Remaining', '{}/{} (running: {})'.format(State.remainingMatches, State.matchCount, State.runningMatches))
         for match in sorted(State.matches, key=matchSortKey()):
             imgui.push_id(str(match))
             show, _ = imgui.collapsing_header('{}'.format(match))
