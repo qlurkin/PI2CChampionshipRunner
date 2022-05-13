@@ -5,6 +5,7 @@
         "glfw",
         "imgui",
         "Parameteri",
+        "Popen",
         "tobytes"
     ]
 }
