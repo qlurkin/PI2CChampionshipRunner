@@ -29,12 +29,12 @@ def monitor(client):
 	proc = None
 	thread = None
 	port = client['port']
-	cmd = client['cmd'].format(port=port, name='name')
+	cmd = client['cmd'].format(port=port, name=name)
 	running = True
 	restarted = 0
 	state = ''
 	cwd = client['cwd']
-	log = open(os.path.join(cwd, 'log.txt'), 'w')
+	log = open(os.path.join(cwd, '../log.txt'), 'w')
 
 	def setState(s):
 		nonlocal state
