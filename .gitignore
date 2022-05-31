@@ -141,3 +141,7 @@ logs
 .DS_Store
 imgui.ini
 clients.yml
+clients
+clients-auto.yml
+clients-test
+Groups.csv
