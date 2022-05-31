@@ -105,4 +105,5 @@ def start(filename):
 
 
 if __name__ == '__main__':
+	time.sleep(2)
 	start(sys.argv[1])
