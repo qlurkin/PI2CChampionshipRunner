@@ -24,6 +24,8 @@ def loadCSV():
             port = 4000 + i
             iaName, studentStrings, gitLink = line.strip().split(';')
             gitDir = gitLink[gitLink.rindex('/')+1:]
+            if gitDir.endswith('.git'):
+                gitDir = gitDir[:-4]
             students = []
             for student in studentStrings.split(', '):
                 match = studentPattern.match(student)
