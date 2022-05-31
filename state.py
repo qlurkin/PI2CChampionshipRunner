@@ -99,6 +99,10 @@ class Match:
         self.points = [0, 0]
         log.info('Match {} Reset'.format(self))
 
+    async def stop(self):
+        if self.status == MatchStatus.RUNNING:
+            pass
+
 class ClientNotFoundError(Exception):
     pass
 
@@ -126,6 +130,9 @@ class _State:
     def addClient(self, client: Client):
         try:
             oldClient = self.getClientByMatricules(client.matricules)
+            client.badMoves = oldClient.badMoves
+            client.matchCount = oldClient.matchCount
+            client.points = oldClient.points
             if oldClient.name != client.name:
                 self.removeClient(oldClient.name)
                 return self.addClient(client)
@@ -149,6 +156,10 @@ class _State:
     @property
     def remainingMatches(self):
         return len(list(filter(lambda match: match.status != MatchStatus.DONE, self.matches)))
+
+    @property
+    def runningMatches(self):
+        return len(list(filter(lambda match: match.task is not None, self.matches)))
 
     @property
     def matchCount(self):
