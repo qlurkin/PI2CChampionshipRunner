@@ -91,6 +91,7 @@ def start(filename):
 	try:
 		stops = []
 		for client in clients:
+			time.sleep(0.2)
 			stops.append(monitor(client))
 		command = ''
 		while command != 'stop':
