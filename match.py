@@ -13,6 +13,7 @@ RETRY_TIME = 3
 
 log = getLogger('match')
 
+
 @dataclass
 class Player:
     client: Client
@@ -42,7 +43,8 @@ class Player:
     def __str__(self):
         return str(self.client)
 
-async def runMatch(Game: callable, match: Match, tempo: float):
+
+async def runMatch(Game, match: Match, tempo: float):
     log = getMatchLogger(match)
     match.status = MatchStatus.RUNNING
 
@@ -55,6 +57,8 @@ async def runMatch(Game: callable, match: Match, tempo: float):
     match.state = matchState
     chat = Chat()
     match.chat = chat
+    current = None
+    other = None
 
     def kill(player, msg, move):
         log.warning(msg)
@@ -65,9 +69,9 @@ async def runMatch(Game: callable, match: Match, tempo: float):
         tic = clock(period=tempo)
         while all([player.lives != 0 for player in players]):
             await tic()
+            current = players[matchState['current']]
+            other = players[(matchState['current']+1)%2]
             try:
-                current = players[matchState['current']]
-                other = players[(matchState['current']+1)%2]
                 request = {
                     'request': 'play',
                     'lives': current.lives,
@@ -108,7 +112,8 @@ async def runMatch(Game: callable, match: Match, tempo: float):
                 kill(current, 'Error in the turn of {}: {}. Wait for {} seconds'.format(current, e, RETRY_TIME), None)
                 await asyncio.sleep(RETRY_TIME)
 
-        
+        assert current is not None
+        assert other is not None
         msg = '{} has done too many Bad Moves'.format(current)
         log.warning(msg)
         chat.addMessage(Message(name="Admin", message=msg))

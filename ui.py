@@ -1,19 +1,19 @@
 import glfw
 import OpenGL.GL as gl
-import imgui
+import imgui  # type: ignore
 from imgui.integrations.glfw import GlfwRenderer
 from state import State, Match
 import time
 from status import ClientStatus, MatchStatus
-
-FONT_SIZE = 14
-
 from logs import getLogger
 from utils import clock
+
+FONT_SIZE = 14
 
 log = getLogger('ui')
 
 textures = []
+
 
 def createTextureFromPIL(pilImage):
     data = pilImage.tobytes()
@@ -22,15 +22,35 @@ def createTextureFromPIL(pilImage):
     texture = gl.glGenTextures(1)
     textures.append(texture)
     gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR)
-    gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR)
-    gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGBA, width, height, 0, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE, data)
+    gl.glTexParameteri(
+        gl.GL_TEXTURE_2D,
+        gl.GL_TEXTURE_MAG_FILTER,
+        gl.GL_LINEAR
+    )
+    gl.glTexParameteri(
+        gl.GL_TEXTURE_2D,
+        gl.GL_TEXTURE_MIN_FILTER,
+        gl.GL_LINEAR
+    )
+    gl.glTexImage2D(
+        gl.GL_TEXTURE_2D,
+        0,
+        gl.GL_RGBA,
+        width,
+        height,
+        0,
+        gl.GL_RGBA,
+        gl.GL_UNSIGNED_BYTE,
+        data
+    )
 
     return texture, width, height
+
 
 def destroyTextures():
     gl.glDeleteTextures(textures)
     textures.clear()
+
 
 def impl_glfw_init(title):
     width, height = 1280, 720
@@ -60,40 +80,37 @@ def impl_glfw_init(title):
 
     return window
 
+
 def matchSortKey():
     T = time.time()
+
     def key(match: Match):
         if match.status == MatchStatus.RUNNING and match.state is not None:
+            assert match.start is not None
             return - (T - match.start)
         if match.status == MatchStatus.RUNNING:
-            return 0
+            return 0.0
         if match.status == MatchStatus.PENDING:
-            return 1
+            return 1.0
         if match.status == MatchStatus.DONE:
-            return 2
+            return 2.0
+        return float('Inf')
     return key
+
 
 async def ui(gameName, render):
     log.info("UI started")
-    imgui.create_context()
+    imgui.core.create_context()
     window = impl_glfw_init('{} Runner'.format(gameName.capitalize()))
     impl = GlfwRenderer(window)
-    io = imgui.get_io()
-    
-    #regular = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Regular Nerd Font Complete.ttf', FONT_SIZE)
-    #bold = io.fonts.add_font_from_file_ttf('./font/firacode/Fira Code Bold Nerd Font Complete.ttf', FONT_SIZE)
-    #impl.refresh_font_texture()
+    # io = imgui.get_io()  # pyright: ignore
 
     def print_key_value(key, value):
-        imgui.push_style_color(imgui.COLOR_TEXT, 0.8, 0.8, 0.8)
-        imgui.text(str(key)+':')
-        imgui.pop_style_color()
-        imgui.same_line()
-        #imgui.push_font(bold)
-        
-        imgui.text(str(value))
-        #imgui.pop_font()
-        
+        imgui.core.push_style_color(imgui.COLOR_TEXT, 0.8, 0.8, 0.8)
+        imgui.core.text(str(key)+':')
+        imgui.core.pop_style_color()
+        imgui.core.same_line()
+        imgui.core.text(str(value))
 
     tic = clock(60)
     while not glfw.window_should_close(window):
@@ -101,91 +118,111 @@ async def ui(gameName, render):
         glfw.poll_events()
         impl.process_inputs()
 
-        imgui.new_frame()
-        #imgui.push_font(regular)
+        imgui.core.new_frame()
 
-        if imgui.begin_main_menu_bar():
-            if imgui.begin_menu("File", True):
+        if imgui.core.begin_main_menu_bar():
+            if imgui.core.begin_menu("File", True):
 
-                clicked_quit, selected_quit = imgui.menu_item(
+                clicked_quit, _ = imgui.core.menu_item(
                     "Quit", 'Cmd+Q', False, True
                 )
 
                 if clicked_quit:
                     exit(1)
 
-                imgui.end_menu()
-            imgui.end_main_menu_bar()
+                imgui.core.end_menu()
+            imgui.core.end_main_menu_bar()
 
-        imgui.begin("Clients")
+        imgui.core.begin("Clients")
         print_key_value('Count', len(State.clients))
-        for client in sorted(State.clients.values(), key=lambda client : -client.points):
-            imgui.push_id(str(client.matricules))
+        for client in sorted(
+            State.clients.values(),
+            key=lambda client: -client.points
+        ):
+            imgui.core.push_id(str(client.matricules))
             if client.status != ClientStatus.READY:
-                imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0, 1.0)
+                imgui.core.push_style_color(
+                    imgui.COLOR_TEXT,
+                    1.0, 0.0, 0.0, 1.0
+                )
 
-            show, _ = imgui.collapsing_header('{}'.format(client.name))
-            
+            show, _ = imgui.core.collapsing_header('{}'.format(client.name))
+
             print_key_value('IP', '{}:{}'.format(client.ip, client.port))
-            imgui.same_line(spacing=30)
+            imgui.core.same_line(spacing=30)
             print_key_value('Points', client.points)
-            
+
             if show:
                 print_key_value('Matricules', ', '.join(client.matricules))
                 print_key_value('Status', str(client.status).split('.')[1])
                 print_key_value('Played', client.matchCount)
                 if client.matchCount != 0:
-                    print_key_value('Avg Bad Moves', '{0:.2f}'.format(client.badMoves/client.matchCount))
-                if imgui.button('Unsubscribe'):
+                    print_key_value(
+                        'Avg Bad Moves',
+                        '{0:.2f}'.format(client.badMoves/client.matchCount)
+                    )
+                if imgui.core.button('Unsubscribe'):
                     await State.removeClient(client.name)
 
             if client.status != ClientStatus.READY:
-                imgui.pop_style_color()
-            imgui.pop_id()
-        imgui.end()
+                imgui.core.pop_style_color()
+            imgui.core.pop_id()
+        imgui.core.end()
 
-        imgui.begin('Matches')
-        print_key_value('Remaining', '{}/{} (running: {})'.format(State.remainingMatches, State.matchCount, State.runningMatches))
+        imgui.core.begin('Matches')
+        print_key_value(
+            'Remaining',
+            '{}/{} (running: {})'.format(
+                State.remainingMatches,
+                State.matchCount,
+                State.runningMatches
+            )
+        )
         for match in sorted(State.matches, key=matchSortKey()):
-            imgui.push_id(str(match))
-            show, _ = imgui.collapsing_header('{}'.format(match))
-            imgui.begin_group()
+            imgui.core.push_id(str(match))
+            show, _ = imgui.core.collapsing_header('{}'.format(match))
+            imgui.core.begin_group()
             if match.state is not None:
-                imgui.text('Clients:')
-                #imgui.push_font(bold)
+                imgui.core.text('Clients:')
                 if match.state['current'] == 0:
-                    imgui.bullet_text(match.state['players'][0])
-                    imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
-                    imgui.bullet()
-                    imgui.pop_style_color()
-                    imgui.text(match.state['players'][1])
+                    imgui.core.bullet_text(match.state['players'][0])
+                    imgui.core.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.core.bullet()
+                    imgui.core.pop_style_color()
+                    imgui.core.text(match.state['players'][1])
                 else:
-                    imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
-                    imgui.bullet()
-                    imgui.pop_style_color()
-                    imgui.text(match.state['players'][0])
-                    imgui.bullet_text(match.state['players'][1])
-                #imgui.pop_font()
-            if match.status == MatchStatus.RUNNING or (match.status == MatchStatus.DONE and show):
+                    imgui.core.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.core.bullet()
+                    imgui.core.pop_style_color()
+                    imgui.core.text(match.state['players'][0])
+                    imgui.core.bullet_text(match.state['players'][1])
+            if match.status == MatchStatus.RUNNING or \
+                    (match.status == MatchStatus.DONE and show):
                 print_key_value('Moves', match.moves)
                 if match.start is not None:
                     if match.end is None:
-                        print_key_value('Time', '{0:.2f}s'.format(time.time() - match.start))
+                        print_key_value(
+                            'Time',
+                            '{0:.2f}s'.format(time.time() - match.start)
+                        )
                     else:
-                        print_key_value('Time', '{0:.2f}s'.format(match.end - match.start))
+                        print_key_value(
+                            'Time',
+                            '{0:.2f}s'.format(match.end - match.start)
+                        )
             if match.status == MatchStatus.RUNNING or show:
                 print_key_value('Status', str(match.status).split('.')[1])
             if match.status == MatchStatus.DONE:
                 print_key_value('Winner', match.winner)
             if match.status == MatchStatus.RUNNING or show:
-                if imgui.button("Reset"):
+                if imgui.core.button("Reset"):
                     await match.reset()
-            imgui.end_group()
+            imgui.core.end_group()
             if match.state is not None:
-                imgui.same_line(position=150)
-                imgui.begin_group()
+                imgui.core.same_line(position=150)
+                imgui.core.begin_group()
                 texture, _, _ = createTextureFromPIL(render(match.state, 300))
-                imgui.image(
+                imgui.core.image(
                     texture_id=texture,
                     width=150,
                     height=150,
@@ -194,30 +231,29 @@ async def ui(gameName, render):
                     tint_color=(255, 255, 255, 255),
                     border_color=(255, 255, 255, 128),
                 )
-                imgui.end_group()
+                imgui.core.end_group()
                 if match.chat is not None:
-                    imgui.same_line()
-                    imgui.begin_child('chat {}'.format(match), 0, 150, border=True)
+                    imgui.core.same_line()
+                    imgui.core.begin_child(
+                        'chat {}'.format(match),
+                        0,
+                        150,
+                        border=True
+                    )
                     for message in match.chat.messages:
-                        imgui.spacing()
-                        imgui.spacing()
-                        imgui.text(message.name)
-                        #imgui.push_font(bold)
-                        imgui.text_wrapped(message.message)
-                        #imgui.pop_font()
-                        imgui.set_scroll_here()
-                    imgui.end_child()
-            imgui.pop_id()
-        imgui.end()
-
-        #imgui.show_test_window()
-        
-        #imgui.pop_font()
+                        imgui.core.spacing()
+                        imgui.core.spacing()
+                        imgui.core.text(message.name)
+                        imgui.core.text_wrapped(message.message)
+                        imgui.core.set_scroll_here()
+                    imgui.core.end_child()
+            imgui.core.pop_id()
+        imgui.core.end()
 
         gl.glClearColor(.66, .66, .66, 1.)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-        imgui.render()
-        impl.render(imgui.get_draw_data())
+        imgui.core.render()
+        impl.render(imgui.core.get_draw_data())
         glfw.swap_buffers(window)
         destroyTextures()
     impl.shutdown()

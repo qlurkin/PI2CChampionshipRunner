@@ -42,7 +42,7 @@ async def writeJSON(writer: asyncio.StreamWriter, obj):
     writer.write(message)
     await writer.drain()
 
-async def fetch(client, request, baseTime = 0.25, retries=10, timeout=10):
+async def fetch(client, request, baseTime = 0.25, retries=10, timeout=10.0):
     try:
         for i in range(retries):
             try:

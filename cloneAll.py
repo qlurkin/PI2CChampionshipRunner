@@ -1,9 +1,6 @@
 import re
 import os
-import subprocess as sp
 import yaml
-
-from numpy import mat
 
 DEST_YAML = 'clients-auto.yml'
 SRC_CSV = 'Groups.csv'
@@ -12,9 +9,11 @@ NOTE_CSV = 'notes-auto.csv'
 
 # csv format
 # nom IA;étudiants;lien github
-# Bot-4000;Quentin Lurkin (LUR), André Lorge (LRG);https://github.com/qlurkin/PI2CChampionshipRunner
+# Bot-4000;Quentin Lurkin (LUR),
+# André Lorge (LRG);https://github.com/qlurkin/PI2CChampionshipRunner
 
 studentPattern = re.compile(r'(.+) \((.+)\)')
+
 
 def loadCSV():
     with open(SRC_CSV, encoding='utf8') as file:
@@ -51,13 +50,16 @@ def loadCSV():
 
     return clients
 
+
 def create_clone_dir():
     if not os.path.exists(CLONE_DIR):
         os.makedirs(CLONE_DIR)
 
+
 def saveYaml(clients):
     with open(DEST_YAML, 'w', encoding='utf8') as file:
         file.write(yaml.dump(clients, allow_unicode=True))
+
 
 def save_notes_csv(clients):
     with open(NOTE_CSV, 'w', encoding='utf8') as file:
@@ -70,9 +72,9 @@ def save_notes_csv(clients):
                 ))
 
 
-
 if __name__ == '__main__':
     create_clone_dir()
     clients = loadCSV()
     saveYaml(clients)
     save_notes_csv(clients)
+

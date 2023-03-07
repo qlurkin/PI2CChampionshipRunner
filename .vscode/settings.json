@@ -4,8 +4,10 @@
         "bitonic",
         "glfw",
         "imgui",
+        "jsonpickle",
         "Parameteri",
         "Popen",
         "tobytes"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }

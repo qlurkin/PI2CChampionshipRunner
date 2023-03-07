@@ -1,5 +1,6 @@
 import asyncio
 from dataclasses import dataclass
+from typing import Optional
 from utils import clock
 from logs import getLogger, stateFilename, date
 from status import ClientStatus, MatchStatus
@@ -9,8 +10,10 @@ import random
 
 log = getLogger('state')
 
+
 class StateError(Exception):
     pass
+
 
 @dataclass
 class Client:
@@ -27,6 +30,7 @@ class Client:
     def __str__(self):
         return self.name
 
+
 @dataclass
 class Message:
     name: str
@@ -42,19 +46,20 @@ class Chat:
         if len(self.messages) > 10:
             self.messages.pop(0)
 
+
 @dataclass
 class Match:
     clients: list
     badMoves: list
     points: list
-    moves = 0
-    start = None
-    end = None
+    moves: int = 0
+    start: float | None = None
+    end: float | None = None
     status: MatchStatus = MatchStatus.PENDING
-    winner: str = None
-    task = None
-    state = None
-    chat = None
+    winner: str | None = None
+    task: asyncio.Task | None = None
+    state: Optional['_State'] = None
+    chat: Chat | None = None
 
     def __init__(self, client1: Client, client2: Client):
         self.clients = [client1.name, client2.name]
@@ -73,11 +78,12 @@ class Match:
     async def reset(self):
         if self.task is not None:
             task = self.task
-            self.task = None
             task.cancel()
+            self.task = None
             try:
                 await task
             except asyncio.CancelledError as e:
+                assert self.chat is not None, 'Chat is None'
                 self.chat.addMessage(Message('Admin', str(e)))
             finally:
                 for client in State.getClients(self):
@@ -103,8 +109,10 @@ class Match:
         if self.status == MatchStatus.RUNNING:
             pass
 
+
 class ClientNotFoundError(Exception):
     pass
+
 
 @dataclass
 class _State:
@@ -127,47 +135,51 @@ class _State:
         self.clients.pop(name)
         log.info('Client {} Removed'.format(name))
 
-    def addClient(self, client: Client):
+    async def addClient(self, client: Client):
         try:
             oldClient = self.getClientByMatricules(client.matricules)
             client.badMoves = oldClient.badMoves
             client.matchCount = oldClient.matchCount
             client.points = oldClient.points
             if oldClient.name != client.name:
-                self.removeClient(oldClient.name)
-                return self.addClient(client)
+                await self.removeClient(oldClient.name)
+                await self.addClient(client)
         except ClientNotFoundError:
             if client.name in self.clients:
-                raise StateError('Name \'{}\' Already Used'.format(client.name))
+                raise StateError('Name \'{}\' Already Used'.format(
+                    client.name
+                ))
             for other in self.clients.values():
                 players = [other, client]
                 random.shuffle(players)
                 self.matches.append(Match(*players))
-        self.clients[client.name] = client
-        
-        
-        
-            
-        
+            self.clients[client.name] = client
 
     def getClients(self, match: Match):
         return [self.clients[name] for name in match.clients]
 
     @property
     def remainingMatches(self):
-        return len(list(filter(lambda match: match.status != MatchStatus.DONE, self.matches)))
+        return len(list(filter(
+            lambda match: match.status != MatchStatus.DONE,
+            self.matches
+        )))
 
     @property
     def runningMatches(self):
-        return len(list(filter(lambda match: match.task is not None, self.matches)))
+        return len(list(filter(
+            lambda match: match.task is not None,
+            self.matches
+        )))
 
     @property
     def matchCount(self):
         return len(self.matches)
 
 
-State = _State(clients = {}, matches = [])
+State = _State(clients={}, matches=[])
 log.info('State Created')
+
 
 async def dumpState():
     log.info('State Dumper Started')
@@ -175,5 +187,4 @@ async def dumpState():
     while True:
         await tic()
         with open(stateFilename, 'w', encoding='utf8') as file:
-            file.write(jsonpickle.encode(State))
-
+            file.write(str(jsonpickle.encode(State)))
