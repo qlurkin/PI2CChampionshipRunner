@@ -35,7 +35,7 @@ DIRECTIONS = {
     (-1, 0): {"name": "N"},
     (1, 0): {"name": "S"},
     (0, -1): {"name": "W"},
-    (0, 1): {"name": "E"}
+    (0, 1): {"name": "E"},
 }
 
 
@@ -149,13 +149,14 @@ def path(start, end, board):
         res = []
         for dir in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
             coords = add(index2coords(index), dir)
-            dirName = DIRECTIONS[dir]['name']
-            opposite = DIRECTIONS[dirName]['opposite']
-            #breakpoint()
+            dirName = DIRECTIONS[dir]["name"]
+            opposite = DIRECTIONS[dirName]["opposite"]
+            # breakpoint()
             if isCoordsValid(*coords):
                 if board[index][dirName] and board[coords2index(*coords)][opposite]:
                     res.append(coords2index(*coords))
         return res
+
     try:
         res = BFS(start, successors, [end])
         print(res)
@@ -253,22 +254,32 @@ def Labyrinthe(players):
 
         new_state["positions"] = new_positions
 
-        if path(new_state['positions'][state['current']], move['new_position'], new_state['board']) is None:
-            raise game.BadMove('Your new_position is unreachable')
+        if (
+            path(
+                new_state["positions"][state["current"]],
+                move["new_position"],
+                new_state["board"],
+            )
+            is None
+        ):
+            raise game.BadMove("Your new_position is unreachable")
 
-        new_state["positions"][state["current"]] = move['new_position']
+        new_state["positions"][state["current"]] = move["new_position"]
 
-        if new_state['board'][new_state["positions"][state["current"]]]['item'] == targets[state['current']][-1]:
-            targets[state['current']].pop()
-            if len(targets[state['current']]) == 0:
-                new_state['remaining'] = 0
-                new_state['target'] = None
-                raise game.GameWin(state['current'], new_state)
+        if (
+            new_state["board"][new_state["positions"][state["current"]]]["item"]
+            == targets[state["current"]][-1]
+        ):
+            targets[state["current"]].pop()
+            if len(targets[state["current"]]) == 0:
+                new_state["remaining"] = 0
+                new_state["target"] = None
+                raise game.GameWin(state["current"], new_state)
 
-        new_state['current'] = (new_state['current'] + 1) % 2
+        new_state["current"] = (new_state["current"] + 1) % 2
 
-        new_state['target'] = targets[new_state['current']][-1]
-        new_state['remaining'] = len(targets[new_state['current']])
+        new_state["target"] = targets[new_state["current"]][-1]
+        new_state["remaining"] = len(targets[new_state["current"]])
 
         return new_state
 
@@ -305,26 +316,81 @@ def showBoard(board):
 
     print("\n".join(["".join(line) for line in mat]))
 
+
 def showState(state):
-    print('Player:', state['players'][state['current']])
-    print('Target:', state['target'])
-    print('Remaining:', state['remaining'])
-    print('Tile:', state['tile'])
-    print('Positions:')
-    for i, pos in enumerate(state['positions']):
-        print(' - {}: {}'.format(state['players'][i], pos))
-    showBoard(state['board'])
+    print("Player:", state["players"][state["current"]])
+    print("Target:", state["target"])
+    print("Remaining:", state["remaining"])
+    print("Tile:", state["tile"])
+    print("Positions:")
+    for i, pos in enumerate(state["positions"]):
+        print(" - {}: {}".format(state["players"][i], pos))
+    showBoard(state["board"])
 
 
 Game = Labyrinthe
 
 if __name__ == "__main__":
     state, next = Game(["LUR", "HSL"])
-    state = {'players': ['LUR', 'HSL'], 'current': 0, 'positions': [0, 48], 'board': [{'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 0}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': 14}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 1}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': None}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': 15}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 2}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 3}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 4}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 23}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 5}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': True, 'item': 22}, {'N': False, 'E': True, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 19}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': 17}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 6}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': 16}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 7}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': 12}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 8}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': False, 'S': True, 'W': True, 'item': 9}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': True, 'W': False, 'item': 21}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}, {'N': False, 'E': False, 'S': True, 'W': True, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 20}, {'N': True, 'E': True, 'S': False, 'W': False, 'item': None}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 10}, {'N': False, 'E': True, 'S': True, 'W': False, 'item': 13}, {'N': True, 'E': True, 'S': False, 'W': True, 'item': 11}, {'N': True, 'E': False, 'S': True, 'W': False, 'item': None}, {'N': True, 'E': False, 'S': False, 'W': True, 'item': None}], 'tile': {'N': True, 'E': True, 'S': True, 'W': False, 'item': 18}, 'target': 7, 'remaining': 4}
+    state = {
+        "players": ["LUR", "HSL"],
+        "current": 0,
+        "positions": [0, 48],
+        "board": [
+            {"N": False, "E": True, "S": True, "W": False, "item": None},
+            {"N": False, "E": True, "S": False, "W": True, "item": None},
+            {"N": False, "E": True, "S": True, "W": True, "item": 0},
+            {"N": False, "E": True, "S": True, "W": False, "item": 14},
+            {"N": False, "E": True, "S": True, "W": True, "item": 1},
+            {"N": True, "E": False, "S": False, "W": True, "item": None},
+            {"N": False, "E": False, "S": True, "W": True, "item": None},
+            {"N": False, "E": False, "S": True, "W": True, "item": 15},
+            {"N": False, "E": True, "S": False, "W": True, "item": None},
+            {"N": True, "E": False, "S": False, "W": True, "item": None},
+            {"N": True, "E": False, "S": True, "W": False, "item": None},
+            {"N": True, "E": False, "S": True, "W": False, "item": None},
+            {"N": True, "E": False, "S": True, "W": False, "item": None},
+            {"N": False, "E": True, "S": False, "W": True, "item": None},
+            {"N": True, "E": True, "S": True, "W": False, "item": 2},
+            {"N": False, "E": True, "S": False, "W": True, "item": None},
+            {"N": True, "E": True, "S": True, "W": False, "item": 3},
+            {"N": False, "E": False, "S": True, "W": True, "item": None},
+            {"N": False, "E": True, "S": True, "W": True, "item": 4},
+            {"N": False, "E": True, "S": True, "W": True, "item": 23},
+            {"N": True, "E": False, "S": True, "W": True, "item": 5},
+            {"N": False, "E": True, "S": False, "W": True, "item": None},
+            {"N": False, "E": True, "S": True, "W": True, "item": 22},
+            {"N": False, "E": True, "S": False, "W": True, "item": None},
+            {"N": True, "E": False, "S": True, "W": True, "item": 19},
+            {"N": True, "E": False, "S": True, "W": False, "item": None},
+            {"N": True, "E": False, "S": False, "W": True, "item": 17},
+            {"N": True, "E": False, "S": False, "W": True, "item": None},
+            {"N": True, "E": True, "S": True, "W": False, "item": 6},
+            {"N": True, "E": True, "S": False, "W": False, "item": 16},
+            {"N": True, "E": True, "S": False, "W": True, "item": 7},
+            {"N": True, "E": True, "S": False, "W": False, "item": 12},
+            {"N": True, "E": False, "S": True, "W": True, "item": 8},
+            {"N": True, "E": False, "S": False, "W": True, "item": None},
+            {"N": True, "E": False, "S": True, "W": True, "item": 9},
+            {"N": True, "E": False, "S": False, "W": True, "item": None},
+            {"N": True, "E": True, "S": True, "W": False, "item": 21},
+            {"N": True, "E": False, "S": True, "W": False, "item": None},
+            {"N": True, "E": True, "S": False, "W": False, "item": None},
+            {"N": True, "E": False, "S": False, "W": True, "item": None},
+            {"N": False, "E": False, "S": True, "W": True, "item": None},
+            {"N": True, "E": True, "S": False, "W": True, "item": 20},
+            {"N": True, "E": True, "S": False, "W": False, "item": None},
+            {"N": False, "E": True, "S": True, "W": False, "item": None},
+            {"N": True, "E": True, "S": False, "W": True, "item": 10},
+            {"N": False, "E": True, "S": True, "W": False, "item": 13},
+            {"N": True, "E": True, "S": False, "W": True, "item": 11},
+            {"N": True, "E": False, "S": True, "W": False, "item": None},
+            {"N": True, "E": False, "S": False, "W": True, "item": None},
+        ],
+        "tile": {"N": True, "E": True, "S": True, "W": False, "item": 18},
+        "target": 7,
+        "remaining": 4,
+    }
     showState(state)
-    state = next(state, {
-        "tile": state['tile'],
-        "gate": "C",
-        "new_position": 8
-    })
+    state = next(state, {"tile": state["tile"], "gate": "C", "new_position": 8})
     showState(state)
