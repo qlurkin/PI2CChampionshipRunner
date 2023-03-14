@@ -1,6 +1,6 @@
 import glfw
 import OpenGL.GL as gl
-import imgui  # type: ignore
+import imgui
 from imgui.integrations.glfw import GlfwRenderer
 from state import State, Match
 import time
