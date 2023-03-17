@@ -59,3 +59,5 @@ The `tile` key contains the free tile to push on the board in the orientation yo
 The `gate` key contains the gate through which you want the free tile to be pushed on the board (see the figure at the top).
 
 The `new_position` contains the index of the tile you want your piece to go after the tile was pushed.
+
+If the same state (same player turn + same board configuration) occurs more than 2 times, the game is over with a draw.
