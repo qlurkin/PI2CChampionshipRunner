@@ -1,19 +1,8 @@
 # Labyrinthe Game
 
+![alt text](./image.jpg)
+
 ## The State
-
-Representation of a tile caca
-
-```json
-{
-  "N": true,
-  "E": false,
-  "S": true,
-  "W": true,
-  "item": 1
-}
-```
-The game state:
 
 ```json
 {
@@ -26,6 +15,35 @@ The game state:
   "board": <list of 49 tiles>
 }
 ```
+
+The first player that appears in the `players` list is the player that begin at the top left corner. The second player begin at the bottom right corner.
+
+`current` is the indice of the current player in the `players` list.
+
+The `positions` key contains the positions of the two players.
+
+The `target` key contain the id of the treasure you must reach.
+
+The `remaining` key contains the numbers of treasures each player still has to reach.
+
+The `board` is a list of tiles. It contains every row of the board from top to bottom (see indexes on the figure at the top).
+
+The `tile` key contains the free tile.
+
+Each tile is a JSON object: 
+
+```json
+{
+  "N": true,
+  "E": false,
+  "S": true,
+  "W": true,
+  "item": 1
+}
+```
+
+The `N` (North), `E` (East), `S` (South) and `W` (West) keys tells if the tile is open in that direction. The `item` key contains the treasure id of the tile.
+
 ## A Move
 
 ```json
@@ -35,3 +53,9 @@ The game state:
     "new_position": 45
   }
 ```
+
+The `tile` key contains the free tile to push on the board in the orientation you want it to be pushed.
+
+The `gate` key contains the gate through which you want the free tile to be pushed on the board (see the figure at the top).
+
+The `new_position` contains the index of the tile you want your piece to go after the tile was pushed.

@@ -217,7 +217,7 @@ def Labyrinthe(players):
         "board": board,
         "tile": free,
         "target": targets[0][-1],
-        "remaining": len(targets[0]),
+        "remaining": [len(trg) for trg in targets],
     }
 
     def next(state, move):
@@ -279,7 +279,7 @@ def Labyrinthe(players):
         new_state["current"] = (new_state["current"] + 1) % 2
 
         new_state["target"] = targets[new_state["current"]][-1]
-        new_state["remaining"] = len(targets[new_state["current"]])
+        new_state["remaining"] = [len(trg) for trg in targets]
 
         return new_state
 
@@ -389,8 +389,8 @@ if __name__ == "__main__":
         ],
         "tile": {"N": True, "E": True, "S": True, "W": False, "item": 18},
         "target": 7,
-        "remaining": 4,
+        "remaining": [4, 4],
     }
     showState(state)
-    state = next(state, {"tile": state["tile"], "gate": "C", "new_position": 8})
+    state = next(state, {"tile": turn_tile(turn_tile(turn_tile(turn_tile(state["tile"])))), "gate": "C", "new_position": 8})
     showState(state)

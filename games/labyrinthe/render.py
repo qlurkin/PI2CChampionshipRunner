@@ -82,7 +82,7 @@ def render(state, side=600):
         anchor="lm",
         font=font,
         text="Trg: {}        Rmn: {}".format(
-            letter(state["target"]), state["remaining"]
+            letter(state["target"]), state["remaining"][state["current"]]
         ),
     )
     p1x = state["positions"][0] % 7 * tileSide + tileSide
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         ],
         "tile": {"N": True, "E": True, "S": True, "W": False, "item": 18},
         "target": 7,
-        "remaining": 4,
+        "remaining": [4, 4],
     }
     image = render(state)
     image.save("image.png")
