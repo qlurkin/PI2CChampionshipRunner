@@ -2,6 +2,7 @@ from .. import game
 import copy
 import random
 from collections import deque
+from typing import Optional
 
 #       A     B     C
 #    0  1  2  3  4  5  6
@@ -176,7 +177,7 @@ def Labyrinthe(players):
     #
     # 12 trésor sur les fixes
 
-    board: list[dict | None] = [None] * 49
+    board: list[Optional[dict]] = [None] * 49
     board[0] = {"N": False, "E": True, "S": True, "W": False, "item": None}
     board[2] = {"N": False, "E": True, "S": True, "W": True, "item": 0}
     board[4] = {"N": False, "E": True, "S": True, "W": True, "item": 1}

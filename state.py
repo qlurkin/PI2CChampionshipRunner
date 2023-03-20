@@ -57,7 +57,7 @@ class Match:
     end: Optional[float] = None
     status: MatchStatus = MatchStatus.PENDING
     winner: Optional[str] = None
-    task: Optional[asyncio.Task] | None = None
+    task: Optional[asyncio.Task] = None
     state: Optional['_State'] = None
     chat: Optional[Chat] = None
 
