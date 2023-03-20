@@ -53,13 +53,13 @@ class Match:
     badMoves: list
     points: list
     moves: int = 0
-    start: float | None = None
-    end: float | None = None
+    start: Optional[float] = None
+    end: Optional[float] = None
     status: MatchStatus = MatchStatus.PENDING
-    winner: str | None = None
-    task: asyncio.Task | None = None
+    winner: Optional[str] = None
+    task: Optional[asyncio.Task] | None = None
     state: Optional['_State'] = None
-    chat: Chat | None = None
+    chat: Optional[Chat] = None
 
     def __init__(self, client1: Client, client2: Client):
         self.clients = [client1.name, client2.name]
