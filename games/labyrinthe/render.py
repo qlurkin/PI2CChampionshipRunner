@@ -88,12 +88,12 @@ def render(state, side=600):
     p1x = state["positions"][0] % 7 * tileSide + tileSide
     p1y = state["positions"][0] // 7 * tileSide + tileSide + tileSide / 2
     r = tileSide / 4
-    draw.ellipse(xy=(p1x - r, p1y - r, p1x + r, p1y + r), width=5, outline=(255, 0, 0))
+    draw.ellipse(xy=(p1x - r, p1y - r, p1x + r, p1y + r), width=5, outline=(255, 242, 0))
 
     p2x = state["positions"][1] % 7 * tileSide + tileSide
     p2y = state["positions"][1] // 7 * tileSide + tileSide + tileSide / 2
     r = tileSide / 4
-    draw.ellipse(xy=(p2x - r, p2y - r, p2x + r, p2y + r), width=5, outline=(0, 255, 0))
+    draw.ellipse(xy=(p2x - r, p2y - r, p2x + r, p2y + r), width=5, outline=(0, 162, 232))
     return res
 
 
