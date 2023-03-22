@@ -1,4 +1,4 @@
 glfw
-imgui[glfw]
+dearpygui
 jsonpickle
 Pillow
