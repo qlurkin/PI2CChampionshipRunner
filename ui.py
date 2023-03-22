@@ -20,33 +20,30 @@ def save_callback():
     print("Save Clicked")
 
 
+
+
 async def ui(gameName, render):
     log.info("UI started")
     dpg.create_context()
-    dpg.create_viewport(title='{} Runner'.format(gameName.capitalize()), width=1280, height=720)
+    dpg.create_viewport(title='{} Runner'.format(gameName.capitalize()), width=1280, height=720, vsync=False)
 
-    with dpg.window(label="Example Window") as window:
-        dpg.add_text("Hello world")
-        dpg.add_button(label="Save", callback=save_callback)
-        dpg.add_input_text(label="string")
-        dpg.add_slider_float(label="float")
-        button1 = dpg.add_button(label="Press Me!")
+    with dpg.window(label="Clients") as window:
+        with dpg.group(horizontal=True) as group:
+            dpg.add_text("Count:")
+            clients_count = dpg.add_text("")
+        
 
-        slider_int = dpg.add_slider_int(label="Slide to the left!", width=100)
-        slider_float = dpg.add_slider_float(label="Slide to the right!", width=100)
+    def update(state):
+        dpg.set_value(clients_count, "{}".format(len(State.clients)))
 
-        # An item's unique identifier (tag) is returned when
-        # creating items.
-        print(f"Printing item tag's: {window}, {button1}, {slider_int}, {slider_float}")
-        dpg.add_checkbox(label="Radio Button1", tag="R1")
-        dpg.add_checkbox(label="Radio Button2", source="R1")
-
-        dpg.add_input_text(label="Text Input 1")
-        dpg.add_input_text(label="Text Input 2", source=dpg.last_item(), password=True)
 
     dpg.setup_dearpygui()
     dpg.show_viewport()
-    dpg.start_dearpygui()
+    tic = clock(60)
+    while dpg.is_dearpygui_running():
+        await tic()
+        update(State)
+        dpg.render_dearpygui_frame()
     dpg.destroy_context()
 
 if __name__ == "__main__":
