@@ -150,9 +150,11 @@ class _State:
                     client.name
                 ))
             for other in self.clients.values():
-                players = [other, client]
-                random.shuffle(players)
-                self.matches.append(Match(*players))
+                # players = [other, client]
+                # random.shuffle(players)
+                # self.matches.append(Match(*players))
+                self.matches.append(Match(client, other))
+                self.matches.append(Match(other, client))
             self.clients[client.name] = client
 
     def getClients(self, match: Match):
