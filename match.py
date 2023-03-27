@@ -8,7 +8,7 @@ from logs import getLogger, getMatchLogger
 from status import ClientStatus, MatchStatus
 from utils import clock
 
-MOVE_TIME_LIMIT = 5
+MOVE_TIME_LIMIT = 3
 RETRY_TIME = 3
 
 log = getLogger('match')
@@ -79,7 +79,7 @@ async def runMatch(Game, match: Match, tempo: float):
                     'state': matchState
                 }
                 
-                response, responseTime = await fetch(current.client, request, timeout=MOVE_TIME_LIMIT*1.2)
+                response, responseTime = await fetch(current.client, request, timeout=MOVE_TIME_LIMIT*1.1)
                 current.client.status = ClientStatus.READY
 
                 if 'message' in response :
