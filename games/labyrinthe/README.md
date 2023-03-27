@@ -61,3 +61,5 @@ The `gate` key contains the gate through which you want the free tile to be push
 The `new_position` contains the index of the tile you want your piece to go after the tile was pushed.
 
 If the same state (same player turn + same board configuration) occurs more than 2 times, the game is over with a draw.
+
+test
