@@ -7,6 +7,7 @@ import time
 from logs import getLogger, getMatchLogger
 from status import ClientStatus, MatchStatus
 from utils import clock
+from collections import Counter
 
 MOVE_TIME_LIMIT = 3
 RETRY_TIME = 3
@@ -49,6 +50,9 @@ async def runMatch(Game, match: Match, tempo: float):
     match.status = MatchStatus.RUNNING
 
     log.info('Match Started')
+
+    states = Counter()
+
     match.start = time.time()
     players = [Player(client, i) for i, client in enumerate(State.getClients(match))]
     winner = None
@@ -59,6 +63,8 @@ async def runMatch(Game, match: Match, tempo: float):
     match.chat = chat
     current = None
     other = None
+
+    states.update([str(match.state)])
 
     def kill(player, msg, move):
         log.warning(msg)
@@ -92,6 +98,15 @@ async def runMatch(Game, match: Match, tempo: float):
                         matchState = next(matchState, move)
                         match.state = matchState
                         match.moves += 1
+
+
+                        # Loop detection
+                        k = str(match.state)
+                        if states[k] > 2:
+                            raise game.GameLoop(match.state)
+                        states.update([k])
+
+
                         if responseTime > MOVE_TIME_LIMIT*1.1:
                             kill(current, '{} take too long to respond: {}s'.format(current, responseTime), move)
                     except game.BadMove as e:
