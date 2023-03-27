@@ -10,7 +10,7 @@
   "current": 0,
   "positions": [6, 47],
   "target": 3,
-  "remaining": 4,
+  "remaining": [4, 4],
   "tile": <the free tile>,
   "board": <list of 49 tiles>
 }
