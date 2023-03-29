@@ -26,23 +26,28 @@ async def ui(gameName, render):
             task.add_done_callback(background_tasks.discard)
         return callback
 
-    def add_client(client):
-        header = dpg.add_collapsing_header(tag=client.name, parent=client_group, label=client.name)
-        dpg.add_button(label='unsubscribe', parent=header, callback=unsubscribe_callback(client.name))
+    def update_client(client):
+        root = dpg.get_item_alias(client.name)
+        if root is None:
+            root = client.name
+            dpg.add_collapsing_header(tag=root, parent=client_group, label=client.name)
+            dpg.add_button(label='unsubscribe', parent=root, callback=unsubscribe_callback(client.name))
+
+        dpg.configure_item(root, label="{} (Points: {})".format(client.name, client.points))
+        return root
+
 
     def updateClients():
         clients = dict(State.clients)
-        for client in clients:
-            alias = dpg.get_item_alias(client)
-            if alias is None:
-                add_client(clients[client])
-        
+        items = list(map(update_client, clients.values()))
+             
         client_views = dpg.get_item_children(client_group, 1)
         if client_views is None:
-            return
-        for client in client_views:
-            if dpg.get_item_alias(client) not in clients:
-                dpg.delete_item(client)
+            client_views = []
+        for view in client_views:
+            if dpg.get_item_alias(view) not in items:
+                dpg.delete_item(view)
+        
 
     def update():
         dpg.set_value(clients_count, "{}".format(len(State.clients)))
