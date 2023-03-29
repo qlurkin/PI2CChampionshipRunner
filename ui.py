@@ -40,13 +40,19 @@ async def ui(gameName, render):
     def updateClients():
         clients = dict(State.clients)
         items = list(map(update_client, clients.values()))
-             
+
         client_views = dpg.get_item_children(client_group, 1)
         if client_views is None:
             client_views = []
         for view in client_views:
             if dpg.get_item_alias(view) not in items:
                 dpg.delete_item(view)
+
+        client_views = dpg.get_item_children(client_group, 1)
+        if not isinstance(client_views, list):
+            return
+        client_views.sort(key=lambda item: -clients[dpg.get_item_alias(item)].points)
+        dpg.reorder_items(client_group, 1, client_views)
         
 
     def update():
