@@ -31,12 +31,18 @@ async def ui(gameName, render):
         dpg.add_button(label='unsubscribe', parent=header, callback=unsubscribe_callback(client.name))
 
     def updateClients():
-        client_views = dpg.get_item_children(client_group, 1)
         clients = dict(State.clients)
         for client in clients:
             alias = dpg.get_item_alias(client)
             if alias is None:
                 add_client(clients[client])
+        
+        client_views = dpg.get_item_children(client_group, 1)
+        if client_views is None:
+            return
+        for client in client_views:
+            if dpg.get_item_alias(client) not in clients:
+                dpg.delete_item(client)
 
     def update():
         dpg.set_value(clients_count, "{}".format(len(State.clients)))
