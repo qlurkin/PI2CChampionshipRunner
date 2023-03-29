@@ -160,7 +160,6 @@ def path(start, end, board):
 
     try:
         res = BFS(start, successors, [end])
-        print(res)
         return res
     except IndexError:
         return None

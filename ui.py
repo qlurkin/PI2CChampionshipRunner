@@ -8,22 +8,42 @@ import time
 from status import ClientStatus, MatchStatus
 from logs import getLogger
 from utils import clock
+import asyncio
 
 FONT_SIZE = 14
 
 log = getLogger('ui')
 
-textures = []
-
-
-def save_callback():
-    print("Save Clicked")
-
-
-
-
 async def ui(gameName, render):
     log.info("UI started")
+    loop = asyncio.get_running_loop()
+    background_tasks = set()
+
+    def unsubscribe_callback(client_name):
+        def callback():
+            task = loop.create_task(State.removeClient(client_name))
+            background_tasks.add(task)
+            task.add_done_callback(background_tasks.discard)
+        return callback
+
+    def add_client(client):
+        header = dpg.add_collapsing_header(tag=client.name, parent=client_group, label=client.name)
+        dpg.add_button(label='unsubscribe', parent=header, callback=unsubscribe_callback(client.name))
+
+    def updateClients():
+        client_views = dpg.get_item_children(client_group, 1)
+        clients = dict(State.clients)
+        for client in clients:
+            alias = dpg.get_item_alias(client)
+            if alias is None:
+                add_client(clients[client])
+
+    def update():
+        dpg.set_value(clients_count, "{}".format(len(State.clients)))
+        updateClients()
+
+
+
     dpg.create_context()
     dpg.create_viewport(title='{} Runner'.format(gameName.capitalize()), width=1280, height=720, vsync=False)
 
@@ -31,18 +51,15 @@ async def ui(gameName, render):
         with dpg.group(horizontal=True) as group:
             dpg.add_text("Count:")
             clients_count = dpg.add_text("")
+
+        client_group = dpg.add_group()
         
-
-    def update(state):
-        dpg.set_value(clients_count, "{}".format(len(State.clients)))
-
-
     dpg.setup_dearpygui()
     dpg.show_viewport()
     tic = clock(60)
     while dpg.is_dearpygui_running():
         await tic()
-        update(State)
+        update()
         dpg.render_dearpygui_frame()
     dpg.destroy_context()
 
