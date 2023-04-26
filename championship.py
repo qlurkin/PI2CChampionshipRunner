@@ -37,6 +37,7 @@ async def runAMatch(Game, tempo, parall):
                         match.task = asyncio.create_task(
                                 runMatch(Game, match, tempo)
                         )
+                    return
 
 
 async def awaitAMatch():
