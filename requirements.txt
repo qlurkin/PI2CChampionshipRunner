@@ -1,4 +1,4 @@
-glfw
-imgui[glfw]
-jsonpickle
-Pillow
+glfw == 2.7.0
+imgui[glfw] == 2.0.0
+jsonpickle == 3.0.3
+pillow == 10.2.0
