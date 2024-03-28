@@ -1,4 +1,4 @@
-# Quorido Game
+# Quoridor Game
 
 ![alt text](./image.bmp)
 
