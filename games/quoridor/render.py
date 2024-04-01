@@ -82,8 +82,8 @@ def draw_blocker(draw, wall, side):
     x = i // 2
     y = j // 2
     if i % 2 == 1:
-        draw.rectangle([((x * square_size) - wall_thikness, (y) * square_size),
-                        ((x * square_size) + wall_thikness, (y+1) * square_size)], fill=wall_color)
+        draw.rectangle([(((x+1) * square_size) - wall_thikness, (y) * square_size),
+                        (((x+1) * square_size) + wall_thikness, (y+1) * square_size)], fill=wall_color)
     else:
         draw.rectangle([(x * square_size, ((y+1) * square_size) - wall_thikness),
                         ((x + 1) * square_size, ((y+1) * square_size) + wall_thikness)], fill=wall_color)
