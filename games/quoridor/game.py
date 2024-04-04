@@ -64,21 +64,21 @@ def Quoridor(players):
     }
 
     def next(state, move):
-
-        # map 2D list to numpy array
-        state["board"] = np.array(state["board"])
-
-        # check if the move is valid
-        check_valid_move(state, move)
-
         # create the new state and apply the move
         new_state = copy.deepcopy(state)
+
+        # map 2D list to numpy array
+        new_state["board"] = np.array(state["board"])
+
+        # check if the move is valid
+        check_valid_move(new_state, move)
+
         if move["type"] == "pawn":
             move_pawn(new_state["board"],
                       new_state["current"], move["position"][0])
             if is_won(new_state):
                 raise game.GameWin(
-                    state['current'], new_state)
+                    new_state['current'], new_state)
         else:
             add_blocker(new_state["board"], move["position"])
             new_state["blockers"][new_state["current"]] -= 1
@@ -138,6 +138,22 @@ def check_valid_blocker(state, move):
             (position0[1] == position1[1] and abs(position1[0]-position0[0]) == 2 and position0[1] % 2 == 1)):
         raise game.BadMove(
             "The two positions of your blocker are not adjacent")
+    # check if there is already a blocker in the the orthogonal axis
+    if position0[0] % 2 == 1:
+        j = min(position0[1],position1[1])+1
+        ortho_1 = (position0[0]-1,j)
+        ortho_2 = (position0[0]+1,j)
+        if check_inboard_position(ortho_1) and check_inboard_position(ortho_2):
+            if state["board"][ortho_1] == BLOCKER and state["board"][ortho_2] == BLOCKER:
+                raise game.BadMove("There is already a blocker on the horizontal axis")
+    else:
+        i = min(position0[0],position1[0])+1
+        ortho_1 = (i,position0[1]-1)
+        ortho_2 = (i,position0[1]+1)
+        if check_inboard_position(ortho_1) and check_inboard_position(ortho_2):
+            if state["board"][ortho_1] == BLOCKER and state["board"][ortho_2] == BLOCKER:
+                raise game.BadMove("There is already a blocker on the vertical axis")
+
     # check if the game is still winnable by both players after adding the blockers
     board_after_move = np.copy(state["board"])
     add_blocker(board_after_move, move["position"])
