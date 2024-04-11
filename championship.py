@@ -1,4 +1,5 @@
 import asyncio
+import random
 
 from logs import getLogger
 from match import runMatch
@@ -8,32 +9,35 @@ from utils import clock, ping
 log = getLogger("championship")
 
 
-async def rescueClients():
+async def rescueAClients():
     clients = list(State.clients.values())
+    random.shuffle(clients)
     for client in clients:
         if client.status == ClientStatus.LOST:
             if await ping(client):
                 client.status = ClientStatus.READY
-
-
-async def runAMatch(Game, tempo, parall):
-    matches = list(State.matches)
-    for match in matches:
-        if (not parall) and State.runningMatches > 0:
             return
+
+
+def runAMatch(Game, tempo, parall):
+    if (not parall) and State.runningMatches > 0:
+        return
+    matches = list(State.matches)
+    random.shuffle(matches)
+    for match in matches:
         if match.status == MatchStatus.PENDING:
             clients = match.clients
             if all([client.status == ClientStatus.READY for client in clients]):
                 if all([not client.busy for client in clients]):
-                    if all(await asyncio.gather(*[ping(client) for client in clients])):
-                        for client in clients:
-                            client.busy = True
-                        match.task = asyncio.create_task(runMatch(Game, match, tempo))
+                    for client in clients:
+                        client.busy = True
+                    match.task = asyncio.create_task(runMatch(Game, match, tempo))
                     return
 
 
 async def awaitAMatch():
     matches = list(State.matches)
+    random.shuffle(matches)
     for match in matches:
         if match.task is not None and match.task.done():
             try:
@@ -55,6 +59,6 @@ async def championship(Game, tempo, parall):
     tic = clock(5)
     while True:
         await tic()
-        await runAMatch(Game, tempo, parall)
+        runAMatch(Game, tempo, parall)
         await awaitAMatch()
-        await rescueClients()
+        await rescueAClients()

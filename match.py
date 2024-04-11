@@ -8,7 +8,7 @@ from jsonStream import FetchError, fetch
 from logs import getLogger, getMatchLogger
 from state import Chat, Client, Match, Message
 from status import ClientStatus, MatchStatus
-from utils import clock
+from utils import clock, ping
 
 MOVE_TIME_LIMIT = 3
 RETRY_TIME = 3
@@ -43,6 +43,14 @@ class Player:
 
 
 async def runMatch(Game, match: Match, tempo: float):
+    if any(
+        [
+            not r
+            for r in await asyncio.gather(*[ping(client) for client in match.clients])
+        ]
+    ):
+        return
+
     log = getMatchLogger(match)
     match.status = MatchStatus.RUNNING
 
