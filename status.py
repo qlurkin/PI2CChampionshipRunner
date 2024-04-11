@@ -11,4 +11,3 @@ class MatchStatus(Enum):
     PENDING = 1
     RUNNING = 2
     DONE = 3
-

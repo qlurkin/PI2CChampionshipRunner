@@ -1,14 +1,15 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Optional
-from utils import clock
-from logs import getLogger, stateFilename, date
-from status import ClientStatus, MatchStatus
-import jsonpickle
 from datetime import datetime
-import random
+from typing import Any, Optional
 
-log = getLogger('state')
+import jsonpickle
+
+from logs import date, getLogger, stateFilename
+from status import ClientStatus, MatchStatus
+from utils import clock
+
+log = getLogger("state")
 
 
 class StateError(Exception):
@@ -20,12 +21,9 @@ class Client:
     name: str
     port: int
     ip: str
-    matricules: set
+    matricules: frozenset
     status: ClientStatus = ClientStatus.PENDING
     busy: bool = False
-    badMoves: int = 0
-    matchCount: int = 0
-    points: int = 0
 
     def __str__(self):
         return self.name
@@ -49,30 +47,28 @@ class Chat:
 
 @dataclass
 class Match:
-    clients: list
-    badMoves: list
-    points: list
+    clients: list[Client]
+    badMoves: list[int]
     moves: int = 0
     start: Optional[float] = None
     end: Optional[float] = None
     status: MatchStatus = MatchStatus.PENDING
-    winner: Optional[str] = None
+    winner: Optional[Client] = None
     task: Optional[asyncio.Task] = None
-    state: Optional['_State'] = None
+    state: Optional[Any] = None
     chat: Optional[Chat] = None
 
     def __init__(self, client1: Client, client2: Client):
-        self.clients = [client1.name, client2.name]
+        self.clients = [client1, client2]
         self.badMoves = [0, 0]
-        self.points = [0, 0]
 
     def __str__(self):
-        return '{} VS {}'.format(*self.clients)
+        return "{} VS {}".format(*[client.name for client in self.clients])
 
     def __getstate__(self):
         D = dict(self.__dict__)
-        D['task'] = None
-        D['chat'] = None
+        D["task"] = None
+        D["chat"] = None
         return D
 
     async def reset(self):
@@ -83,16 +79,11 @@ class Match:
             try:
                 await task
             except asyncio.CancelledError as e:
-                assert self.chat is not None, 'Chat is None'
-                self.chat.addMessage(Message('Admin', str(e)))
+                assert self.chat is not None, "Chat is None"
+                self.chat.addMessage(Message("Admin", str(e)))
             finally:
-                for client in State.getClients(self):
+                for client in self.clients:
                     client.busy = False
-        if self.status == MatchStatus.DONE:
-            for i, client in enumerate(State.getClients(self)):
-                client.matchCount -= 1
-                client.badMoves -= self.badMoves[i]
-                client.points -= self.points[i]
         self.moves = 0
         self.start = None
         self.end = None
@@ -102,12 +93,7 @@ class Match:
         self.state = None
         self.chat = None
         self.badMoves = [0, 0]
-        self.points = [0, 0]
-        log.info('Match {} Reset'.format(self))
-
-    async def stop(self):
-        if self.status == MatchStatus.RUNNING:
-            pass
+        log.info("Match {} Reset".format(self))
 
 
 class ClientNotFoundError(Exception):
@@ -116,77 +102,90 @@ class ClientNotFoundError(Exception):
 
 @dataclass
 class _State:
-    clients: dict
-    matches: list
+    clients: dict[frozenset[str], Client]
+    matches: list[Match]
     date: datetime = date
 
-    def getClientByMatricules(self, matricules: set):
-        for client in self.clients.values():
-            if client.matricules == matricules:
-                return client
-        raise ClientNotFoundError()
-
-    async def removeClient(self, name):
+    async def removeClient(self, matricules: frozenset[str]):
+        client = self.clients[matricules]
         for match in list(self.matches):
-            if name in match.clients:
+            if client in match.clients:
                 if match.status != MatchStatus.PENDING:
                     await match.reset()
                 self.matches.remove(match)
-        self.clients.pop(name)
-        log.info('Client {} Removed'.format(name))
+        self.clients.pop(matricules)
+        log.info("Client {} Removed".format(client.name))
 
-    async def addClient(self, client: Client):
-        try:
-            oldClient = self.getClientByMatricules(client.matricules)
-            client.badMoves = oldClient.badMoves
-            client.matchCount = oldClient.matchCount
-            client.points = oldClient.points
-            if oldClient.name != client.name:
-                await self.removeClient(oldClient.name)
-                await self.addClient(client)
-        except ClientNotFoundError:
-            if client.name in self.clients:
-                raise StateError('Name \'{}\' Already Used'.format(
-                    client.name
-                ))
+    async def addClient(
+        self, name: str, port: int, matricules: frozenset[str], ip: str
+    ) -> Client:
+        if matricules in self.clients:
+            oldClient = self.clients[matricules]
+            oldClient.name = name
+            oldClient.port = port
+            oldClient.ip = ip
+            return oldClient
+        else:
+            client = Client(name=name, port=port, matricules=matricules, ip=ip)
             for other in self.clients.values():
                 # players = [other, client]
                 # random.shuffle(players)
                 # self.matches.append(Match(*players))
                 self.matches.append(Match(client, other))
                 self.matches.append(Match(other, client))
-            self.clients[client.name] = client
-
-    def getClients(self, match: Match):
-        return [self.clients[name] for name in match.clients]
+            self.clients[client.matricules] = client
+            return client
 
     @property
-    def remainingMatches(self):
-        return len(list(filter(
-            lambda match: match.status != MatchStatus.DONE,
-            self.matches
-        )))
+    def remainingMatches(self) -> int:
+        return len(
+            list(filter(lambda match: match.status != MatchStatus.DONE, self.matches))
+        )
 
     @property
-    def runningMatches(self):
-        return len(list(filter(
-            lambda match: match.task is not None,
-            self.matches
-        )))
+    def runningMatches(self) -> int:
+        return len(list(filter(lambda match: match.task is not None, self.matches)))
 
     @property
     def matchCount(self):
         return len(self.matches)
 
+    def getPoints(self, client: Client) -> int:
+        res = 0
+        for match in self.matches:
+            if client in match.clients:
+                if match.status == MatchStatus.DONE:
+                    if match.winner == client:
+                        res += 3
+                    elif match.winner is None:
+                        res += 1
+        return res
+
+    def getBadMoves(self, client: Client) -> int:
+        res = 0
+        for match in self.matches:
+            if client in match.clients:
+                i = match.clients.index(client)
+                res += match.badMoves[i]
+        return res
+
+    def getMatchCount(self, client: Client) -> int:
+        res = 0
+        for match in self.matches:
+            if client in match.clients:
+                if match.status == MatchStatus.DONE:
+                    res += 1
+        return res
+
 
 State = _State(clients={}, matches=[])
-log.info('State Created')
+log.info("State Created")
 
 
 async def dumpState():
-    log.info('State Dumper Started')
+    log.info("State Dumper Started")
     tic = clock(1)
     while True:
         await tic()
-        with open(stateFilename, 'w', encoding='utf8') as file:
+        with open(stateFilename, "w", encoding="utf8") as file:
             file.write(str(jsonpickle.encode(State)))

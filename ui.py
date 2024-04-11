@@ -126,7 +126,9 @@ async def ui(gameName, render):
 
         imgui.core.begin("Clients")
         print_key_value("Count", len(State.clients))
-        for client in sorted(State.clients.values(), key=lambda client: -client.points):
+        for client in sorted(
+            State.clients.values(), key=lambda client: -State.getPoints(client)
+        ):
             imgui.core.push_id(str(client.matricules))
             if client.status != ClientStatus.READY:
                 imgui.core.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0, 1.0)
@@ -135,19 +137,20 @@ async def ui(gameName, render):
 
             print_key_value("IP", "{}:{}".format(client.ip, client.port))
             imgui.core.same_line(spacing=30)
-            print_key_value("Points", client.points)
+            print_key_value("Points", State.getPoints(client))
 
             if show:
                 print_key_value("Matricules", ", ".join(client.matricules))
                 print_key_value("Status", str(client.status).split(".")[1])
-                print_key_value("Played", client.matchCount)
-                if client.matchCount != 0:
+                clientMatchCount = State.getMatchCount(client)
+                print_key_value("Played", clientMatchCount)
+                if clientMatchCount != 0:
                     print_key_value(
                         "Avg Bad Moves",
-                        "{0:.2f}".format(client.badMoves / client.matchCount),
+                        "{0:.2f}".format(State.getBadMoves(client) / clientMatchCount),
                     )
                 if imgui.core.button("Unsubscribe"):
-                    await State.removeClient(client.name)
+                    await State.removeClient(client.matricules)
 
             if client.status != ClientStatus.READY:
                 imgui.core.pop_style_color()

@@ -1,7 +1,8 @@
 import asyncio
+
 from jsonStream import readJSON, writeJSON
-from state import State, Client, StateError
 from logs import getLogger
+from state import State, StateError
 from utils import ping
 
 log = getLogger('inscription')
@@ -25,35 +26,28 @@ async def processClient(reader, writer):
         try:
             if request['request'] != 'subscribe':
                 raise InscriptionError(
-                    'Request \'{}\' Unsupported'.format(request['request'])
+                    f'Request "{request['request']}" Unsupported'
                 )
         except KeyError as e:
-            raise InscriptionError('Key \'{}\' Missing'.format(e))
+            raise InscriptionError(f'Key "{e}" Missing')
 
-        log.info('Subscription received from {}:{}'.format(ip, port))
+        log.info(f'Subscription received from {ip}:{port}')
 
         try:
-            client = Client(
+            client = await State.addClient(
                 name=request['name'],
                 port=request['port'],
-                matricules=set(map(str,request['matricules'])),
+                matricules=frozenset(map(str,request['matricules'])),
                 ip=ip
             )
         except KeyError as e:
-            raise InscriptionError('Key \'{}\' Missing'.format(e))
+            raise InscriptionError(f'Key "{e}" Missing')
+        except StateError as e:
+            raise InscriptionError(e)
         except Exception as e:
             raise InscriptionError(str(e))
 
-        try:
-            await State.addClient(client)
-        except StateError as e:
-            raise InscriptionError(e)
-
-        log.info('Pending client: {} ({}:{})'.format(
-            client.name,
-            client.ip,
-            client.port
-        ))
+        log.info(f'Pending client: {client.name} ({client.ip}:{client.port})')
         await writeJSON(writer, {'response': 'ok'})
         asyncio.create_task(pingInOneSecond(client))
     except InscriptionError as e:
@@ -65,5 +59,5 @@ async def processClient(reader, writer):
 
 
 async def inscription(port):
-    log.info('Inscription Task Started. Listen on port {}'.format(port))
+    log.info(f'Inscription Task Started. Listen on port {port}')
     await asyncio.start_server(processClient, '0.0.0.0', port)
