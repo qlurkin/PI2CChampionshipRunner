@@ -15,7 +15,7 @@ class PingError(Exception):
 async def ping(client):
     try:
         log.info("Ping {}:{}".format(client.ip, client.port))
-        response, responseTime = await fetch(client, {"request": "ping"}, timeout=0.5)
+        response, _ = await fetch(client, {"request": "ping"}, timeout=0.1)
         try:
             if response["response"] != "pong":
                 raise PingError("Not a Pong")
