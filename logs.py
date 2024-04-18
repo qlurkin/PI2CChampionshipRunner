@@ -64,7 +64,7 @@ def getLogger(name):
     log.setLevel(logging.DEBUG)
 
     consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setLevel(logging.DEBUG)
+    consoleHandler.setLevel(logging.INFO)
     consoleHandler.setFormatter(consoleFormatter)
 
     fileHandler = logging.FileHandler(mainLogFilename)
