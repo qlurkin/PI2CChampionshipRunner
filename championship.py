@@ -57,12 +57,26 @@ async def awaitAMatch():
 
 async def championship(Game, tempo, parall):
     log.info("Championship Task Started")
-    tic = clock(5)
+    tic = clock(10)
     while True:
         await tic()
         log.debug("try running A match")
         runAMatch(Game, tempo, parall)
+
+
+async def matchAwaiter():
+    log.info("Match Awaiter Task Started")
+    tic = clock(10)
+    while True:
+        await tic()
         log.debug("awaiting a match")
         await awaitAMatch()
+
+
+async def rescuer():
+    log.info("Rescuer Task Started")
+    tic = clock(10)
+    while True:
+        await tic()
         log.debug("try rescueing a client")
         await rescueAClients()
