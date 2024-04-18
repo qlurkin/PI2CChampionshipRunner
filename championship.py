@@ -31,6 +31,7 @@ def runAMatch(Game, tempo, parall):
                 if all([not client.busy for client in clients]):
                     for client in clients:
                         client.busy = True
+                    log.debug("try running {}".format(match))
                     match.task = asyncio.create_task(runMatch(Game, match, tempo))
                     return
 
@@ -59,6 +60,9 @@ async def championship(Game, tempo, parall):
     tic = clock(5)
     while True:
         await tic()
+        log.debug("try running A match")
         runAMatch(Game, tempo, parall)
+        log.debug("awaiting a match")
         await awaitAMatch()
+        log.debug("try rescueing a client")
         await rescueAClients()
