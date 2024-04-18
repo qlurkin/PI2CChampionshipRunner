@@ -111,6 +111,9 @@ async def runMatch(Game, match: Match, tempo: float):
                         # Loop detection
                         k = str(match.state)
                         if states[k] > 2:
+                            msg = "LOOP DETECTED !!!"
+                            log.info(msg)
+                            chat.addMessage(Message(name="Admin", message=msg))
                             raise game.GameLoop(match.state)
                         states.update([k])
 
