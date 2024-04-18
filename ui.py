@@ -131,7 +131,7 @@ async def ui(gameName, render):
         ):
             imgui.core.push_id(str(client.matricules))
             if client.status != ClientStatus.READY:
-                imgui.core.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0, 1.0)
+                imgui.core.push_style_color(imgui.COLOR_TEXT, 0.0, 1.0, 1.0, 1.0)
 
             show, _ = imgui.core.collapsing_header("{}".format(client.name))
 
