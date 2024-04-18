@@ -61,18 +61,19 @@ def getMatchFilename(match):
 
 def getLogger(name):
     log = logging.getLogger(name)
-    log.setLevel(logging.DEBUG)
+    if len(log.handlers) == 0:
+        log.setLevel(logging.DEBUG)
 
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setLevel(logging.INFO)
-    consoleHandler.setFormatter(consoleFormatter)
+        consoleHandler = logging.StreamHandler(sys.stdout)
+        consoleHandler.setLevel(logging.INFO)
+        consoleHandler.setFormatter(consoleFormatter)
 
-    fileHandler = logging.FileHandler(mainLogFilename)
-    fileHandler.setLevel(logging.INFO)
-    fileHandler.setFormatter(fileFormatter)
+        fileHandler = logging.FileHandler(mainLogFilename)
+        fileHandler.setLevel(logging.INFO)
+        fileHandler.setFormatter(fileFormatter)
 
-    log.addHandler(consoleHandler)
-    log.addHandler(fileHandler)
+        log.addHandler(consoleHandler)
+        log.addHandler(fileHandler)
 
     return log
 
