@@ -91,7 +91,7 @@ def matchSortKey():
     return key
 
 
-async def ui(gameName, render):
+async def ui(gameName, render, ip, port):
     log.info("UI started")
     imgui.core.create_context()
     window = impl_glfw_init("{} Runner".format(gameName.capitalize()))
@@ -125,6 +125,7 @@ async def ui(gameName, render):
             imgui.core.end_main_menu_bar()
 
         imgui.core.begin("Clients")
+        print_key_value("Server Address", f"{ip}:{port}")
         print_key_value("Count", len(State.clients))
         for client in sorted(
             State.clients.values(), key=lambda client: -State.getPoints(client)

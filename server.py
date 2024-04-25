@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import importlib
+import socket
 
 from championship import championship, matchAwaiter, rescuer
 from inscription import inscription
@@ -13,6 +14,7 @@ log = getLogger("server")
 
 async def main(gameName: str, port: int, tempo: float, parall: bool):
     log.info("Game Server For {}".format(gameName.capitalize()))
+    IPAddr = socket.gethostbyname(socket.gethostname())
 
     Game = importlib.import_module("games.{}.game".format(gameName)).Game
     render = importlib.import_module("games.{}.render".format(gameName)).render
@@ -22,7 +24,7 @@ async def main(gameName: str, port: int, tempo: float, parall: bool):
     rescuerTask = asyncio.create_task(rescuer())
     matchAwaiterTask = asyncio.create_task(matchAwaiter())
 
-    await ui(gameName, render)
+    await ui(gameName, render, IPAddr, port)
 
     inscriptionTask.cancel()
     try:
@@ -81,4 +83,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     asyncio.run(main(args.gameName, args.port, args.tempo, args.parall))
-
