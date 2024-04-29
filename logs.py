@@ -80,17 +80,18 @@ def getLogger(name):
 
 def getMatchLogger(match):
     log = logging.getLogger(str(match))
-    log.setLevel(logging.DEBUG)
+    if len(log.handlers) == 0:
+        log.setLevel(logging.DEBUG)
 
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setLevel(logging.INFO)
-    consoleHandler.setFormatter(consoleFormatter)
+        consoleHandler = logging.StreamHandler(sys.stdout)
+        consoleHandler.setLevel(logging.INFO)
+        consoleHandler.setFormatter(consoleFormatter)
 
-    fileHandler = logging.FileHandler(getMatchFilename(match))
-    fileHandler.setLevel(logging.DEBUG)
-    fileHandler.setFormatter(fileFormatter)
+        fileHandler = logging.FileHandler(getMatchFilename(match))
+        fileHandler.setLevel(logging.DEBUG)
+        fileHandler.setFormatter(fileFormatter)
 
-    log.addHandler(consoleHandler)
-    log.addHandler(fileHandler)
+        log.addHandler(consoleHandler)
+        log.addHandler(fileHandler)
 
     return log
