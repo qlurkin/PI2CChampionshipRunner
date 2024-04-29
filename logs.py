@@ -56,7 +56,7 @@ def getMatchFilename(match):
     folder = os.path.join(LOGS_FOLDER, getDateStr())
     if not os.path.exists(folder):
         os.mkdir(folder)
-    return os.path.join(folder, slugify("{}.log".format(match)))
+    return os.path.join(folder, "{}.log".format(slugify(match)))
 
 
 def getLogger(name):
@@ -80,18 +80,21 @@ def getLogger(name):
 
 def getMatchLogger(match):
     log = logging.getLogger(str(match))
-    if len(log.handlers) == 0:
-        log.setLevel(logging.DEBUG)
 
-        consoleHandler = logging.StreamHandler(sys.stdout)
-        consoleHandler.setLevel(logging.INFO)
-        consoleHandler.setFormatter(consoleFormatter)
+    while log.hasHandlers():
+        log.removeHandler(log.handlers[0])
 
-        fileHandler = logging.FileHandler(getMatchFilename(match))
-        fileHandler.setLevel(logging.DEBUG)
-        fileHandler.setFormatter(fileFormatter)
+    log.setLevel(logging.DEBUG)
 
-        log.addHandler(consoleHandler)
-        log.addHandler(fileHandler)
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setLevel(logging.INFO)
+    consoleHandler.setFormatter(consoleFormatter)
+
+    fileHandler = logging.FileHandler(getMatchFilename(match), mode="w")
+    fileHandler.setLevel(logging.DEBUG)
+    fileHandler.setFormatter(fileFormatter)
+
+    log.addHandler(consoleHandler)
+    log.addHandler(fileHandler)
 
     return log
