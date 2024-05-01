@@ -166,7 +166,7 @@ def check_valid_blocker(state, move):
 
 def is_won(state):
     goal_pawn = [(0, i) if state["current"] == PAWN2 else (max_index, i)
-                 for i in range(0, max_index, 2)]
+                 for i in range(0, max_index+1, 2)]
     pawn_pos = pawn_position(state["board"], state["current"])
     return pawn_pos in goal_pawn
 
@@ -177,7 +177,7 @@ def is_winnable(board):
     # BFS for each pawn to check if they can reach the winning condition
     for pawn in [PAWN1, PAWN2]:
         goal_pawn = {(0, i) if pawn == PAWN2 else (max_index, i)
-                     for i in range(0, max_index, 2)}
+                     for i in range(0, max_index+1, 2)}
         to_explore = next_positions(board, pawn)
         explored = set()
         while to_explore:
