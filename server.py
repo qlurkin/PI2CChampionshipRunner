@@ -14,7 +14,10 @@ log = getLogger("server")
 
 async def main(gameName: str, port: int, tempo: float, parall: bool):
     log.info("Game Server For {}".format(gameName.capitalize()))
-    IPAddr = socket.gethostbyname(socket.gethostname())
+    try:
+        IPAddr = socket.gethostbyname(socket.gethostname())
+    except OSError:
+        IPAddr = "unknown"
 
     Game = importlib.import_module("games.{}.game".format(gameName)).Game
     render = importlib.import_module("games.{}.render".format(gameName)).render
