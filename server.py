@@ -8,16 +8,14 @@ from inscription import inscription
 from logs import getLogger
 from state import dumpState
 from ui import ui
+from utils import get_ip
 
 log = getLogger("server")
 
 
 async def main(gameName: str, port: int, tempo: float, parall: bool):
     log.info("Game Server For {}".format(gameName.capitalize()))
-    try:
-        IPAddr = socket.gethostbyname(socket.gethostname())
-    except OSError:
-        IPAddr = "unknown"
+    IPAddr = get_ip()
 
     Game = importlib.import_module("games.{}.game".format(gameName)).Game
     render = importlib.import_module("games.{}.render".format(gameName)).render
