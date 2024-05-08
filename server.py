@@ -1,7 +1,6 @@
 import argparse
 import asyncio
 import importlib
-import socket
 
 from championship import championship, matchAwaiter, rescuer
 from inscription import inscription
