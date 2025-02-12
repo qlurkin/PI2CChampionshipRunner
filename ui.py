@@ -1,9 +1,9 @@
 import time
 
+from imgui_bundle.python_backends.glfw_backend import GlfwRenderer
 import glfw
-import imgui
+from imgui_bundle import imgui
 import OpenGL.GL as gl
-from imgui.integrations.glfw import GlfwRenderer
 
 from logs import getLogger
 from state import Match, State
@@ -93,17 +93,17 @@ def matchSortKey():
 
 async def ui(gameName, render, ip, port):
     log.info("UI started")
-    imgui.core.create_context()
+    imgui.create_context()
     window = impl_glfw_init("{} Runner".format(gameName.capitalize()))
     impl = GlfwRenderer(window)
     # io = imgui.get_io()  # pyright: ignore
 
     def print_key_value(key, value):
-        imgui.core.push_style_color(imgui.COLOR_TEXT, 0.8, 0.8, 0.8)
-        imgui.core.text(str(key) + ":")
-        imgui.core.pop_style_color()
-        imgui.core.same_line()
-        imgui.core.text(str(value))
+        # imgui.push_style_color(imgui.Col, (0.8, 0.8, 0.8, 1.0))
+        imgui.text(str(key) + ":")
+        # imgui.core.pop_style_color()
+        imgui.same_line()
+        imgui.text(str(value))
 
     tic = clock(60)
     while not glfw.window_should_close(window):
@@ -111,32 +111,33 @@ async def ui(gameName, render, ip, port):
         glfw.poll_events()
         impl.process_inputs()
 
-        imgui.core.new_frame()
+        imgui.new_frame()
 
-        if imgui.core.begin_main_menu_bar():
-            if imgui.core.begin_menu("File", True):
-                clicked_quit, _ = imgui.core.menu_item("Quit", "Cmd+Q", False, True)
+        if imgui.begin_main_menu_bar():
+            if imgui.begin_menu("File", True):
+                clicked_quit, _ = imgui.menu_item("Quit", "Cmd+Q", False, True)
 
                 if clicked_quit:
                     exit(1)
 
-                imgui.core.end_menu()
-            imgui.core.end_main_menu_bar()
+                imgui.end_menu()
+            imgui.end_main_menu_bar()
 
-        imgui.core.begin("Clients")
+        imgui.begin("Clients")
         print_key_value("Server Address", f"{ip}:{port}")
         print_key_value("Count", len(State.clients))
         for client in sorted(
             State.clients.values(), key=lambda client: -State.getPoints(client)
         ):
-            imgui.core.push_id(str(client.matricules))
+            imgui.push_id(str(client.matricules))
             if client.status != ClientStatus.READY:
-                imgui.core.push_style_color(imgui.COLOR_TEXT, 0.0, 1.0, 0.0, 1.0)
+                # imgui.push_style_color(imgui.COLOR_TEXT, 0.0, 1.0, 0.0, 1.0)
+                pass
 
-            show, _ = imgui.core.collapsing_header("{}".format(client.name))
+            show = imgui.collapsing_header("{}".format(client.name))
 
             print_key_value("IP", "{}:{}".format(client.ip, client.port))
-            imgui.core.same_line(spacing=30)
+            imgui.same_line(spacing=30)
             print_key_value("Points", State.getPoints(client))
 
             if show:
@@ -149,15 +150,16 @@ async def ui(gameName, render, ip, port):
                         "Avg Bad Moves",
                         "{0:.2f}".format(State.getBadMoves(client) / clientMatchCount),
                     )
-                if imgui.core.button("Unsubscribe"):
+                if imgui.button("Unsubscribe"):
                     await State.removeClient(client.matricules)
 
             if client.status != ClientStatus.READY:
-                imgui.core.pop_style_color()
-            imgui.core.pop_id()
-        imgui.core.end()
+                # imgui.pop_style_color()
+                pass
+            imgui.pop_id()
+        imgui.end()
 
-        imgui.core.begin("Matches")
+        imgui.begin("Matches")
         print_key_value(
             "Remaining",
             "{}/{} (running: {})".format(
@@ -165,23 +167,23 @@ async def ui(gameName, render, ip, port):
             ),
         )
         for match in sorted(State.matches, key=matchSortKey()):
-            imgui.core.push_id(str(match))
-            show, _ = imgui.core.collapsing_header("{}".format(match))
-            imgui.core.begin_group()
+            imgui.push_id(str(match))
+            show = imgui.collapsing_header("{}".format(match))
+            imgui.begin_group()
             if match.state is not None:
-                imgui.core.text("Clients:")
+                imgui.text("Clients:")
                 if match.state["current"] == 0:
-                    imgui.core.bullet_text(match.state["players"][0])
-                    imgui.core.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
-                    imgui.core.bullet()
-                    imgui.core.pop_style_color()
-                    imgui.core.text(match.state["players"][1])
+                    imgui.bullet_text(match.state["players"][0])
+                    # imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.bullet()
+                    # imgui.pop_style_color()
+                    imgui.text(match.state["players"][1])
                 else:
-                    imgui.core.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
-                    imgui.core.bullet()
-                    imgui.core.pop_style_color()
-                    imgui.core.text(match.state["players"][0])
-                    imgui.core.bullet_text(match.state["players"][1])
+                    # imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.bullet()
+                    # imgui.pop_style_color()
+                    imgui.text(match.state["players"][0])
+                    imgui.bullet_text(match.state["players"][1])
             if match.status == MatchStatus.RUNNING or (
                 match.status == MatchStatus.DONE and show
             ):
@@ -200,40 +202,40 @@ async def ui(gameName, render, ip, port):
             if match.status == MatchStatus.DONE:
                 print_key_value("Winner", match.winner)
             if match.status == MatchStatus.RUNNING or show:
-                if imgui.core.button("Reset"):
+                if imgui.button("Reset"):
                     await match.reset()
-            imgui.core.end_group()
+            imgui.end_group()
             if match.state is not None:
-                imgui.core.same_line(position=150)
-                imgui.core.begin_group()
+                imgui.same_line(150)
+                imgui.begin_group()
                 texture, _, _ = createTextureFromPIL(render(match.state, 300))
-                imgui.core.image(
-                    texture_id=texture,
-                    width=150,
-                    height=150,
-                    uv0=(0, 0),
-                    uv1=(1, 1),
-                    tint_color=(255, 255, 255, 255),
-                    border_color=(255, 255, 255, 128),
+                imgui.image(
+                    texture,
+                    (150, 150),
+                    (0, 0),
+                    (1, 1),
+                    (255, 255, 255, 255),
+                    (255, 255, 255, 128),
                 )
-                imgui.core.end_group()
+                imgui.end_group()
                 if match.chat is not None:
-                    imgui.core.same_line()
-                    imgui.core.begin_child("chat {}".format(match), 0, 150, border=True)
+                    imgui.same_line()
+                    # imgui.begin_child("chat {}".format(match), (0, 150), border=True)
+                    imgui.begin_child("chat {}".format(match), (0, 150))
                     for message in match.chat.messages:
-                        imgui.core.spacing()
-                        imgui.core.spacing()
-                        imgui.core.text(message.name)
-                        imgui.core.text_wrapped(message.message)
-                        imgui.core.set_scroll_here_y()
-                    imgui.core.end_child()
-            imgui.core.pop_id()
-        imgui.core.end()
+                        imgui.spacing()
+                        imgui.spacing()
+                        imgui.text(message.name)
+                        imgui.text_wrapped(message.message)
+                        imgui.set_scroll_here_y()
+                    imgui.end_child()
+            imgui.pop_id()
+        imgui.end()
 
         gl.glClearColor(0.66, 0.66, 0.66, 1.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-        imgui.core.render()
-        impl.render(imgui.core.get_draw_data())
+        imgui.render()
+        impl.render(imgui.get_draw_data())
         glfw.swap_buffers(window)
         destroyTextures()
     impl.shutdown()
