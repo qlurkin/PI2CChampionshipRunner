@@ -96,12 +96,11 @@ async def ui(gameName, render, ip, port):
     imgui.create_context()
     window = impl_glfw_init("{} Runner".format(gameName.capitalize()))
     impl = GlfwRenderer(window)
-    # io = imgui.get_io()  # pyright: ignore
 
     def print_key_value(key, value):
-        # imgui.push_style_color(imgui.Col, (0.8, 0.8, 0.8, 1.0))
+        imgui.push_style_color(imgui.Col_.text.value, (0.8, 0.8, 0.8, 1.0))
         imgui.text(str(key) + ":")
-        # imgui.core.pop_style_color()
+        imgui.pop_style_color()
         imgui.same_line()
         imgui.text(str(value))
 
@@ -131,7 +130,7 @@ async def ui(gameName, render, ip, port):
         ):
             imgui.push_id(str(client.matricules))
             if client.status != ClientStatus.READY:
-                # imgui.push_style_color(imgui.COLOR_TEXT, 0.0, 1.0, 0.0, 1.0)
+                imgui.push_style_color(imgui.Col_.text.value, (0.0, 1.0, 0.0, 1.0))
                 pass
 
             show = imgui.collapsing_header("{}".format(client.name))
@@ -154,7 +153,7 @@ async def ui(gameName, render, ip, port):
                     await State.removeClient(client.matricules)
 
             if client.status != ClientStatus.READY:
-                # imgui.pop_style_color()
+                imgui.pop_style_color()
                 pass
             imgui.pop_id()
         imgui.end()
@@ -174,14 +173,14 @@ async def ui(gameName, render, ip, port):
                 imgui.text("Clients:")
                 if match.state["current"] == 0:
                     imgui.bullet_text(match.state["players"][0])
-                    # imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.push_style_color(imgui.Col_.text.value, (0, 0, 0, 0))
                     imgui.bullet()
-                    # imgui.pop_style_color()
+                    imgui.pop_style_color()
                     imgui.text(match.state["players"][1])
                 else:
-                    # imgui.push_style_color(imgui.COLOR_TEXT, 0, 0, 0, 0)
+                    imgui.push_style_color(imgui.Col_.text.value, (0, 0, 0, 0))
                     imgui.bullet()
-                    # imgui.pop_style_color()
+                    imgui.pop_style_color()
                     imgui.text(match.state["players"][0])
                     imgui.bullet_text(match.state["players"][1])
             if match.status == MatchStatus.RUNNING or (
@@ -220,8 +219,11 @@ async def ui(gameName, render, ip, port):
                 imgui.end_group()
                 if match.chat is not None:
                     imgui.same_line()
-                    # imgui.begin_child("chat {}".format(match), (0, 150), border=True)
-                    imgui.begin_child("chat {}".format(match), (0, 150))
+                    imgui.begin_child(
+                        "chat {}".format(match),
+                        (0, 150),
+                        imgui.ChildFlags_.borders.value,
+                    )
                     for message in match.chat.messages:
                         imgui.spacing()
                         imgui.spacing()
