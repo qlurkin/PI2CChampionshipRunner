@@ -1,5 +1,2 @@
-glfw
 imgui-bundle
 jsonpickle
-pillow
-numpy

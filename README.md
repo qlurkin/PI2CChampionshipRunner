@@ -28,9 +28,6 @@ contenir d'autre clés en fonction de la réponse.
 
 ## Installer les dépendances
 
-Pour plus de simplicité, utilisez Python 3.9 maximum. Cela évite d'avoir à
-compiler certaines des dépendances.
-
 ```shell
 python -m pip install -r requirements.txt
 ```
