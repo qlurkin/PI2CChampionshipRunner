@@ -1,26 +1,35 @@
 # PI2CChampionshipRunner
 
-Ce serveur permet de faire jouer un tournoi entre plusieurs programme clients. Les clients seront généralement des IAs.
+Ce serveur permet de faire jouer un tournoi entre plusieurs programme clients.
+Les clients seront généralement des IAs.
 
 ## Déroulement
 
-Les clients doivent d'abord s'inscrire pour se faire connaître du serveur. Dès que deux clients sont inscrits, le serveur commence à faire jouer les matchs.
+Les clients doivent d'abord s'inscrire pour se faire connaître du serveur. Dès
+que deux clients sont inscrits, le serveur commence à faire jouer les matchs.
 
-Chaque participants affrontera tous les autres deux fois, une fois en temps que premier joueur et une fois en temps que deuxième joueur.
+Chaque participants affrontera tous les autres deux fois, une fois en temps que
+premier joueur et une fois en temps que deuxième joueur.
 
-Pendant un match, le serveur interroge les joueurs tour à tour pour savoir quel coups ils veulent jouer.
+Pendant un match, le serveur interroge les joueurs tour à tour pour savoir quel
+coups ils veulent jouer.
 
 ## Communication
 
-Tous les échanges entre le serveur et les clients se font par des communications réseaux TCP en mode texte. Le contenu des messages sera toujours des objects JSON.
+Tous les échanges entre le serveur et les clients se font par des communications
+réseaux TCP en mode texte. Le contenu des messages sera toujours des objects
+JSON.
 
-Les requêtes contiendront toujours une clé "request" et pourront contenir d'autres clés en fonction de la nature de la requête (voir plus bas).
+Les requêtes contiendront toujours une clé "request" et pourront contenir
+d'autres clés en fonction de la nature de la requête (voir plus bas).
 
-Les réponses contiendront toujours une clé "response" et pourront également contenir d'autre clés en fonction de la réponse.
+Les réponses contiendront toujours une clé "response" et pourront également
+contenir d'autre clés en fonction de la réponse.
 
 ## Installer les dépendances
 
-Pour plus de simplicité, utilisez Python 3.9 maximum. Cela évite d'avoir à compiler certaines des dépendances.
+Pour plus de simplicité, utilisez Python 3.9 maximum. Cela évite d'avoir à
+compiler certaines des dépendances.
 
 ```shell
 python -m pip install -r requirements.txt
@@ -42,10 +51,10 @@ requêtes faite par le client au serveur:
 
 ```json
 {
-   "request": "subscribe",
-   "port": 8888,
-   "name": "fun_name_for_the_client",
-   "matricules": ["12345", "67890"]
+  "request": "subscribe",
+  "port": 8888,
+  "name": "fun_name_for_the_client",
+  "matricules": ["12345", "67890"]
 }
 ```
 
@@ -53,7 +62,7 @@ réponse du serveur si tous est ok:
 
 ```json
 {
-   "response": "ok"
+  "response": "ok"
 }
 ```
 
@@ -61,22 +70,24 @@ réponse en cas d'erreur:
 
 ```json
 {
-   "response": "error",
-   "error": "error message"
+  "response": "error",
+  "error": "error message"
 }
 ```
 
-Cette réponse sera suivie, après 1 seconde, d'une requête ping du serveur au port mentionné dans la requête d'inscription.
+Cette réponse sera suivie, après 1 seconde, d'une requête ping du serveur au
+port mentionné dans la requête d'inscription.
 
 ### requête de ping
 
-Cette requête permet au serveur de vérifier qu'un client est toujours à l'écoute.
+Cette requête permet au serveur de vérifier qu'un client est toujours à
+l'écoute.
 
 La requête faite par le serveur au client est:
 
 ```json
 {
-   "request": "ping"
+  "request": "ping"
 }
 ```
 
@@ -84,7 +95,7 @@ Le réponse que le client doit renvoyer est:
 
 ```json
 {
-   "response": "pong"
+  "response": "pong"
 }
 ```
 
@@ -105,9 +116,13 @@ La requête faite par le serveur au client est:
 }
 ```
 
-La clé `lives` vous indique combien de vies il reste au client. Pour chaque match, les clients ont 3 vies. Il perde une vie à chaque fois qu'il joue un coup invalide. Le client perd le match s'il n'a plus de vies. La clé `errors` contiendra les erreurs qui vous ont fait perdre vos vies.
+La clé `lives` vous indique combien de vies il reste au client. Pour chaque
+match, les clients ont 3 vies. Il perde une vie à chaque fois qu'il joue un coup
+invalide. Le client perd le match s'il n'a plus de vies. La clé `errors`
+contiendra les erreurs qui vous ont fait perdre vos vies.
 
-Le contenu de la clé `state` décrit l'état courant du jeux. Le structure de l'état du jeux dépend du jeux en cours.
+Le contenu de la clé `state` décrit l'état courant du jeux. Le structure de
+l'état du jeux dépend du jeux en cours.
 
 La réponse du client est:
 
@@ -127,10 +142,12 @@ Le client peut également abandonner avec la réponse:
 
 ```json
 {
-   "response": "giveup",
+  "response": "giveup"
 }
 ```
 
-Abandonner est parfois nécessaire dans certains jeux lorsque plus aucun coup n'est possible.
+Abandonner est parfois nécessaire dans certains jeux lorsque plus aucun coup
+n'est possible.
 
-La réponse doit généralement être envoyée dans laps de temps précis (5 secondes) sinon elle sera considérée comme un coup invalide et fera perdre une vie.
+La réponse doit généralement être envoyée dans laps de temps précis (5 secondes)
+sinon elle sera considérée comme un coup invalide et fera perdre une vie.

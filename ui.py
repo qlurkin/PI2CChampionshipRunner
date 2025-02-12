@@ -115,7 +115,6 @@ async def ui(gameName, render, ip, port):
 
         if imgui.core.begin_main_menu_bar():
             if imgui.core.begin_menu("File", True):
-
                 clicked_quit, _ = imgui.core.menu_item("Quit", "Cmd+Q", False, True)
 
                 if clicked_quit:
