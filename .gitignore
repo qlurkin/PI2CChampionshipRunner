@@ -144,3 +144,4 @@ clients
 clients-auto.yml
 clients-test
 Groups.csv
+scale_factor.json
