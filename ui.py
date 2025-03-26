@@ -4,6 +4,7 @@ from imgui_bundle.python_backends.glfw_backend import GlfwRenderer
 import glfw
 from imgui_bundle import imgui
 import OpenGL.GL as gl
+import json
 
 from logs import getLogger
 from state import Match, State
@@ -11,6 +12,13 @@ from status import ClientStatus, MatchStatus
 from utils import clock
 
 FONT_SIZE = 14
+SCALE_FACTOR = 1.0
+
+try:
+    with open("scale_factor.json") as file:
+        SCALE_FACTOR = json.load(file)
+except FileNotFoundError:
+    pass
 
 log = getLogger("ui")
 
@@ -47,7 +55,7 @@ def destroyTextures():
 
 
 def impl_glfw_init(title):
-    width, height = 1280, 720
+    width, height = int(1280 * SCALE_FACTOR), int(720 * SCALE_FACTOR)
     window_name = title
 
     if not glfw.init():
@@ -96,6 +104,9 @@ async def ui(gameName, render, ip, port):
     imgui.create_context()
     window = impl_glfw_init("{} Runner".format(gameName.capitalize()))
     impl = GlfwRenderer(window)
+    io = imgui.get_io()
+    io.font_global_scale = SCALE_FACTOR
+    imgui.get_style().scale_all_sizes(SCALE_FACTOR)
 
     def print_key_value(key, value):
         imgui.push_style_color(imgui.Col_.text.value, (0.8, 0.8, 0.8, 1.0))
@@ -205,12 +216,12 @@ async def ui(gameName, render, ip, port):
                     await match.reset()
             imgui.end_group()
             if match.state is not None:
-                imgui.same_line(150)
+                imgui.same_line(150 * SCALE_FACTOR)
                 imgui.begin_group()
                 texture, _, _ = createTextureFromPIL(render(match.state, 300))
                 imgui.image(
                     texture,
-                    (150, 150),
+                    (150 * SCALE_FACTOR, 150 * SCALE_FACTOR),
                     (0, 0),
                     (1, 1),
                     (255, 255, 255, 255),
@@ -221,7 +232,7 @@ async def ui(gameName, render, ip, port):
                     imgui.same_line()
                     imgui.begin_child(
                         "chat {}".format(match),
-                        (0, 150),
+                        (0, 150 * SCALE_FACTOR),
                         imgui.ChildFlags_.borders.value,
                     )
                     for message in match.chat.messages:
