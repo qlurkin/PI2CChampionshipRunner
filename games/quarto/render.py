@@ -22,7 +22,7 @@ def draw_piece(draw, piece, center, side):
         shape = 20
 
     draw.regular_polygon(
-        (center, size), shape, rotation=0, fill=weight, outline=color, width=10
+        (center, size), shape, rotation=0, fill=weight, outline=color, width=5
     )
 
 

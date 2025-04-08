@@ -13,9 +13,9 @@ import copy
 def same(L):
     if None in L:
         return False
-    common = L[0]
+    common = frozenset(L[0])
     for elem in L[1:]:
-        common = common & elem
+        common = common & frozenset(elem)
     return len(common) > 0
 
 
@@ -92,7 +92,7 @@ def Quarto(players):
             if state["board"][pos] is not None:
                 raise game.BadMove(f"These place '{pos}' is not free")
 
-            newState["board"][pos] = frozenset(state["piece"])
+            newState["board"][pos] = state["piece"]
 
             if isWinning(newState["board"]):
                 raise game.GameWin(state["current"], newState)
@@ -109,6 +109,7 @@ def Quarto(players):
         piece = frozenset(move["piece"])
 
         if piece not in pieces:
+            print(pieces)
             raise game.BadMove(f"Piece '{move['piece']}' not available")
 
         newState["piece"] = move["piece"]
