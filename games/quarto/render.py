@@ -1,7 +1,4 @@
 from PIL import Image, ImageDraw
-import os
-
-root = os.path.dirname(__file__)
 
 
 def draw_piece(draw, piece, center, side):
