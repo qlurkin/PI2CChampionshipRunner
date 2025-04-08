@@ -99,5 +99,29 @@ if __name__ == "__main__":
         "piece": "BDEC",
     }
 
-    image = render(state)
+    state = {
+        "players": ["LUR", "FKY"],
+        "current": 0,
+        "board": [
+            None,
+            "BDEC",
+            None,
+            "SDFP",
+            None,
+            None,
+            None,
+            None,
+            None,
+            "SLFC",
+            None,
+            None,
+            "BLFP",
+            "BLEC",
+            None,
+            None,
+        ],
+        "piece": "BLEP",
+    }
+
+    image = render(state, 800)
     image.save("image.png")
