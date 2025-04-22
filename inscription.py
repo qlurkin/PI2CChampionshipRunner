@@ -2,7 +2,7 @@ import asyncio
 
 from jsonStream import readJSON, writeJSON
 from logs import getLogger
-from state import State, StateError
+import state
 from utils import ping
 
 log = getLogger("inscription")
@@ -34,7 +34,7 @@ async def processClient(reader, writer):
         log.info(f"Subscription received from {ip}:{port}")
 
         try:
-            client = await State.addClient(
+            client = await state.State.addClient(
                 name=request["name"],
                 port=request["port"],
                 matricules=frozenset(map(str, request["matricules"])),
@@ -42,7 +42,7 @@ async def processClient(reader, writer):
             )
         except KeyError as e:
             raise InscriptionError(f'Key "{e}" Missing')
-        except StateError as e:
+        except state.StateError as e:
             raise InscriptionError(e)
         except Exception as e:
             raise InscriptionError(str(e))

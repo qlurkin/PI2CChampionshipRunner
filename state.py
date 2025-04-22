@@ -5,6 +5,7 @@ from typing import Any, Optional
 
 import jsonpickle
 
+from inscription import InscriptionError
 from logs import date, getLogger, stateFilename
 from status import ClientStatus, MatchStatus
 from utils import clock
@@ -126,6 +127,9 @@ class _State:
             oldClient.ip = ip
             return oldClient
         else:
+            names = [c.name for c in self.clients.values()]
+            if name in names:
+                raise InscriptionError(f"Name '{name}' already used")
             client = Client(name=name, port=port, matricules=matricules, ip=ip)
             for other in self.clients.values():
                 # players = [other, client]
