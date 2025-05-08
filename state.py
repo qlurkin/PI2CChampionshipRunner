@@ -220,9 +220,9 @@ async def dumpState():
             matches.append(dumped_match)
 
         with open(stateFilename, "w", encoding="utf8") as file:
-            s = {"clients": clients, "matches": matches}
+            s = {"clients": list(reversed(sorted(clients, key=lambda c: c["points"]))), "matches": matches}
             try:
                 to_write = json.dumps(s, indent=2)
                 file.write(to_write)
             except Exception as e:
-                file.write(e)
+                file.write(str(e))
