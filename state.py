@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Optional
 
-import jsonpickle
+import json
 
 from inscription import InscriptionError
 from logs import date, getLogger, stateFilename
@@ -191,5 +191,38 @@ async def dumpState():
     tic = clock(1)
     while True:
         await tic()
+        clients = []
+        for client in State.clients.values():
+            clients.append({
+                "matricules": list(client.matricules),
+                "name": client.name,
+                "points": State.getPoints(client),
+                "bad_moves": State.getBadMoves(client),
+                "match_count": State.getMatchCount(client),
+            })
+        matches = []
+        for match in State.matches:
+            dumped_match = {
+                "clients": [{"name": c.name, "matricules": list(c.matricules)} for c in match.clients],
+                "bad_moves": match.badMoves,
+                "moves": match.moves,
+                "status": match.status.name,
+            }
+
+            if match.start is not None and match.end is not None:
+                dumped_match["time"] = match.end - match.start
+
+            if match.winner is None:
+                dumped_match['winner'] = None
+            else:
+                dumped_match['winner'] = {"name": match.winner.name, "matricules": list(match.winner.matricules)}
+
+            matches.append(dumped_match)
+
         with open(stateFilename, "w", encoding="utf8") as file:
-            file.write(str(jsonpickle.encode(State)))
+            s = {"clients": clients, "matches": matches}
+            try:
+                to_write = json.dumps(s, indent=2)
+                file.write(to_write)
+            except Exception as e:
+                file.write(e)
