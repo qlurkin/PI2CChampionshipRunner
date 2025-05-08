@@ -176,6 +176,10 @@ async def ui(gameName, render, ip, port):
                 State.remainingMatches, State.matchCount, State.runningMatches
             ),
         )
+        if imgui.button("Reset All"):
+            for match in State.matches:
+                if match.status == MatchStatus.DONE:
+                    await match.reset()
         for match in sorted(State.matches, key=matchSortKey()):
             imgui.push_id(str(match))
             show = imgui.collapsing_header("{}".format(match))
