@@ -27,7 +27,7 @@ def getColumn(board, j):
 
 # dir == 1 or -1
 def getDiagonal(board, dir):
-    start = 0 if dir == 1 else 2
+    start = 0 if dir == 1 else 3
     return [board[start + i * (4 + dir)] for i in range(4)]
 
 
