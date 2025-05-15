@@ -68,7 +68,7 @@ def getLogger(name):
         consoleHandler.setLevel(logging.INFO)
         consoleHandler.setFormatter(consoleFormatter)
 
-        fileHandler = logging.FileHandler(mainLogFilename)
+        fileHandler = logging.FileHandler(mainLogFilename, encoding="utf8")
         fileHandler.setLevel(logging.INFO)
         fileHandler.setFormatter(fileFormatter)
 
@@ -90,7 +90,9 @@ def getMatchLogger(match):
     consoleHandler.setLevel(logging.INFO)
     consoleHandler.setFormatter(consoleFormatter)
 
-    fileHandler = logging.FileHandler(getMatchFilename(match), mode="w")
+    fileHandler = logging.FileHandler(
+        getMatchFilename(match), mode="w", encoding="utf8"
+    )
     fileHandler.setLevel(logging.DEBUG)
     fileHandler.setFormatter(fileFormatter)
 
