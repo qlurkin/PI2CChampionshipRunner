@@ -1,1 +1,1 @@
-imgui-bundle
+imgui-bundle==1.6.2
