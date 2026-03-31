@@ -39,24 +39,24 @@ START_POSITIONS = [
     ["green", "pink", "red", "orange", "brown", "purple", "yellow", "blue"],  # 16
     ["blue", "red", "orange", "pink", "yellow", "brown", "purple", "green"],  # 17
     ["pink", "green", "orange", "purple", "red", "brown", "blue", "yellow"],  # 18
-    ["", "", "", "", "", "", "", ""],  # 19
-    ["", "", "", "", "", "", "", ""],  # 20
-    ["", "", "", "", "", "", "", ""],  # 21
-    ["", "", "", "", "", "", "", ""],  # 22
-    ["", "", "", "", "", "", "", ""],  # 23
-    ["", "", "", "", "", "", "", ""],  # 24
-    ["", "", "", "", "", "", "", ""],  # 25
-    ["", "", "", "", "", "", "", ""],  # 26
-    ["", "", "", "", "", "", "", ""],  # 27
-    ["", "", "", "", "", "", "", ""],  # 28
-    ["", "", "", "", "", "", "", ""],  # 29
-    ["", "", "", "", "", "", "", ""],  # 30
-    ["", "", "", "", "", "", "", ""],  # 31
-    ["", "", "", "", "", "", "", ""],  # 32
-    ["", "", "", "", "", "", "", ""],  # 33
-    ["", "", "", "", "", "", "", ""],  # 34
-    ["", "", "", "", "", "", "", ""],  # 35
-    ["", "", "", "", "", "", "", ""],  # 36
+    ["pink", "blue", "red", "brown", "orange", "purple", "green", "yellow"],  # 19
+    ["yellow", "green", "purple", "brown", "orange", "red", "blue", "pink"],  # 20
+    ["pink", "orange", "green", "red", "purple", "blue", "brown", "yellow"],  # 21
+    ["green", "pink", "red", "brown", "orange", "purple", "yellow", "blue"],  # 22
+    ["green", "red", "pink", "orange", "brown", "yellow", "purple", "blue"],  # 23
+    ["green", "orange", "red", "pink", "yellow", "purple", "brown", "blue"],  # 24
+    ["pink", "green", "purple", "brown", "orange", "red", "blue", "yellow"],  # 25
+    ["red", "green", "pink", "orange", "brown", "yellow", "blue", "purple"],  # 26
+    ["green", "red", "pink", "brown", "orange", "yellow", "purple", "blue"],  # 27
+    ["pink", "blue", "orange", "red", "purple", "brown", "green", "yellow"],  # 28
+    ["red", "blue", "pink", "orange", "brown", "yellow", "green", "purple"],  # 29
+    ["green", "pink", "orange", "red", "purple", "brown", "yellow", "blue"],  # 30
+    ["red", "green", "pink", "brown", "orange", "yellow", "blue", "purple"],  # 31
+    ["red", "orange", "green", "pink", "yellow", "blue", "brown", "purple"],  # 32
+    ["green", "red", "orange", "pink", "yellow", "brown", "purple", "blue"],  # 33
+    ["red", "blue", "pink", "brown", "orange", "yellow", "green", "purple"],  # 34
+    ["red", "green", "orange", "pink", "yellow", "brown", "blue", "purple"],  # 35
+    ["red", "blue", "orange", "pink", "yellow", "brown", "green", "purple"],  # 36
 ]
 
 KINDS = ["dark", "light"]
@@ -114,16 +114,21 @@ def kamisado(players):
     }
 
     def next(state, move):
-
-        if len(move) != 2:
-            raise game.BadMove("A move must contains 2 positions.")
+        try:
+            if len(move) != 2:
+                raise game.BadMove("A move must contains 2 positions.")
+        except TypeError:
+            raise game.BadMove("Moves must have a `len`")
 
         for i in range(2):
-            if len(move[i]) != 2:
-                raise game.BadMove("A position must contains 2 coordinates.")
+            try:
+                if len(move[i]) != 2:
+                    raise game.BadMove("A position must contains 2 coordinates.")
+            except TypeError:
+                raise game.BadMove("Positions must have a `len`")
 
             for j in range(2):
-                if isinstance(move[i][j], int):
+                if not isinstance(move[i][j], int):
                     raise game.BadMove("A coordinate must be an integer.")
 
                 if move[i][j] < 0 or move[i][j] > 7:
@@ -184,8 +189,8 @@ def kamisado(players):
             raise game.BadMove("Yon can't go through other tiles.")
 
         new_board = copy.deepcopy(board)
-        new_board[end_row][end_col][TILE] = new_board[start_col][start_row][TILE]
-        new_board[start_col][start_row][TILE] = None
+        new_board[end_row][end_col][TILE] = new_board[start_row][start_col][TILE]
+        new_board[start_row][start_col][TILE] = None
 
         other = (current + 1) % 2
 
@@ -201,6 +206,7 @@ def kamisado(players):
                     "color": color,
                     "board": new_board,
                 },
+                f"{players[current]} wins",
             )
 
         if blocked(new_board, next_tile):
@@ -216,6 +222,7 @@ def kamisado(players):
                         "color": next_color,
                         "board": new_board,
                     },
+                    f"Deadlock !! {players[other]} wins",
                 )
 
         return {
@@ -231,5 +238,199 @@ def kamisado(players):
 Game = kamisado
 
 if __name__ == "__main__":
+    colors = sorted(
+        ["orange", "blue", "purple", "pink", "yellow", "red", "green", "brown"]
+    )
+    for i, line in enumerate(START_POSITIONS):
+        if sorted(line) != colors:
+            print(f"Error in START_POSITIONS[{i}]")
+    for i, line in enumerate(BOARD):
+        if sorted(line) != colors:
+            print(f"Error in BOARD[{i}]")
+
     state, next = Game(["LUR", "FKY"])
     pprint(state)
+
+    state["board"] = [
+        [
+            ["orange", ["green", "light"]],
+            ["blue", ["pink", "light"]],
+            ["purple", ["red", "light"]],
+            ["pink", ["orange", "light"]],
+            ["yellow", ["brown", "light"]],
+            ["red", ["purple", "light"]],
+            ["green", ["yellow", "light"]],
+            ["brown", ["blue", "light"]],
+        ],
+        [
+            ["red", None],
+            ["orange", None],
+            ["pink", None],
+            ["green", None],
+            ["blue", None],
+            ["yellow", None],
+            ["brown", None],
+            ["purple", None],
+        ],
+        [
+            ["green", None],
+            ["pink", None],
+            ["orange", None],
+            ["red", None],
+            ["purple", None],
+            ["brown", None],
+            ["yellow", None],
+            ["blue", None],
+        ],
+        [
+            ["pink", None],
+            ["purple", None],
+            ["blue", None],
+            ["orange", None],
+            ["brown", None],
+            ["green", None],
+            ["red", None],
+            ["yellow", None],
+        ],
+        [
+            ["yellow", None],
+            ["red", None],
+            ["green", None],
+            ["brown", None],
+            ["orange", None],
+            ["blue", None],
+            ["purple", None],
+            ["pink", None],
+        ],
+        [
+            ["blue", None],
+            ["yellow", None],
+            ["brown", None],
+            ["purple", None],
+            ["red", None],
+            ["orange", None],
+            ["pink", None],
+            ["green", None],
+        ],
+        [
+            ["purple", None],
+            ["brown", None],
+            ["yellow", None],
+            ["blue", None],
+            ["green", None],
+            ["pink", None],
+            ["orange", None],
+            ["red", None],
+        ],
+        [
+            ["brown", ["blue", "dark"]],
+            ["green", ["pink", "dark"]],
+            ["red", ["red", "dark"]],
+            ["yellow", ["orange", "dark"]],
+            ["pink", ["brown", "dark"]],
+            ["purple", ["purple", "dark"]],
+            ["blue", ["yellow", "dark"]],
+            ["orange", ["green", "dark"]],
+        ],
+    ]
+
+    state = next(state, [[7, 0], [1, 0]])
+    pprint(state["board"])
+    state = next(state, [[0, 2], [4, 6]])
+    pprint(state["board"])
+    state = next(state, [[7, 5], [1, 5]])
+    pprint(state["board"])
+
+    state = {
+        "board": [
+            [
+                ["orange", ["brown", "light"]],
+                ["blue", ["blue", "light"]],
+                ["purple", ["purple", "light"]],
+                ["pink", None],
+                ["yellow", None],
+                ["red", None],
+                ["green", None],
+                ["brown", None],
+            ],
+            [
+                ["red", None],
+                ["orange", None],
+                ["pink", None],
+                ["green", None],
+                ["blue", None],
+                ["yellow", None],
+                ["brown", None],
+                ["purple", None],
+            ],
+            [
+                ["green", None],
+                ["pink", ["green", "dark"]],
+                ["orange", None],
+                ["red", None],
+                ["purple", None],
+                ["brown", None],
+                ["yellow", None],
+                ["blue", None],
+            ],
+            [
+                ["pink", None],
+                ["purple", None],
+                ["blue", None],
+                ["orange", None],
+                ["brown", None],
+                ["green", None],
+                ["red", None],
+                ["yellow", None],
+            ],
+            [
+                ["yellow", None],
+                ["red", None],
+                ["green", None],
+                ["brown", None],
+                ["orange", None],
+                ["blue", None],
+                ["purple", None],
+                ["pink", None],
+            ],
+            [
+                ["blue", None],
+                ["yellow", None],
+                ["brown", None],
+                ["purple", None],
+                ["red", None],
+                ["orange", None],
+                ["pink", None],
+                ["green", None],
+            ],
+            [
+                ["purple", None],
+                ["brown", None],
+                ["yellow", None],
+                ["blue", None],
+                ["green", ["orange", "light"]],
+                ["pink", None],
+                ["orange", None],
+                ["red", None],
+            ],
+            [
+                ["brown", None],
+                ["green", None],
+                ["red", None],
+                ["yellow", ["yellow", "dark"]],
+                ["pink", ["pink", "dark"]],
+                ["purple", ["purple", "dark"]],
+                ["blue", None],
+                ["orange", None],
+            ],
+        ],
+        "color": "green",
+        "current": 0,
+        "players": ["LUR", "FKY"],
+    }
+
+    try:
+        state = next(state, [[2, 1], [1, 1]])
+    except game.GameWin as e:
+        print("Deadlock Detected")
+        print(e)
