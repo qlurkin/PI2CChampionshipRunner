@@ -192,11 +192,6 @@ def kamisado(players):
         new_board[end_row][end_col][TILE] = new_board[start_row][start_col][TILE]
         new_board[start_row][start_col][TILE] = None
 
-        other = (current + 1) % 2
-
-        next_color = new_board[end_row][end_col][COLOR]
-        next_tile = find_tile(new_board, next_color, KINDS[other])
-
         if end_row == END_ROW[KINDS[current]]:
             raise game.GameWin(
                 current,
@@ -209,11 +204,14 @@ def kamisado(players):
                 f"{players[current]} wins",
             )
 
-        if blocked(new_board, next_tile):
-            nr, nc = next_tile
-            next_tile = find_tile(new_board, new_board[nr][nc][COLOR], KINDS[current])
-            if blocked(new_board, next_tile):
-                # Deadlock !!
+        other = (current + 1) % 2
+        next_color = new_board[end_row][end_col][COLOR]
+        next_tile = find_tile(new_board, next_color, KINDS[other])
+
+        blocked_tiles = set()
+        next_player = other
+        while blocked(new_board, next_tile):
+            if next_tile in blocked_tiles:
                 raise game.GameWin(
                     other,
                     {
@@ -224,6 +222,12 @@ def kamisado(players):
                     },
                     f"Deadlock !! {players[other]} wins",
                 )
+            blocked_tiles.add(next_tile)
+            nr, nc = next_tile
+            next_player = (next_player + 1) % 2
+            next_tile = find_tile(
+                new_board, new_board[nr][nc][COLOR], KINDS[next_player]
+            )
 
         return {
             "players": players,
@@ -432,5 +436,4 @@ if __name__ == "__main__":
     try:
         state = next(state, [[2, 1], [1, 1]])
     except game.GameWin as e:
-        print("Deadlock Detected")
         print(e)
