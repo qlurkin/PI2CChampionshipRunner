@@ -26,7 +26,7 @@ def render(state, side=600):
     HEIGHT = side
     SIZE = (WIDTH, HEIGHT)
     MARGIN = 20
-    HALFGAP = 3
+    HALFGAP = 1
     CELLSIDE = ((side - 2 * MARGIN) / 8) - 2 * HALFGAP
 
     res = Image.new("RGBA", SIZE, (50, 50, 50))

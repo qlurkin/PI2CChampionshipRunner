@@ -27,21 +27,18 @@ class WriteError(Exception):
 async def readJSON(reader: asyncio.StreamReader):
     chunks = []
     data = ""
-    recieved = 0
+    received = 0
 
     buffer = await reader.read(4)
     total = struct.unpack("I", buffer)[0]
 
-    while True:
+    while received < total:
         await asyncio.sleep(0)
         chunk = await reader.read(1024)
         if len(chunk) == 0:
             raise ReadError("Distant socket closed")
-        total += len(chunk)
+        received += len(chunk)
         chunks.append(chunk)
-
-        if recieved >= total:
-            break
 
     try:
         data = json.loads(b"".join(chunks).decode("utf8"))
@@ -66,6 +63,7 @@ async def writeJSON(writer: asyncio.StreamWriter, obj):
 
     size = struct.pack("I", len(data))
     writer.write(size)
+    await writer.drain()
     writer.write(data)
     await writer.drain()
 
