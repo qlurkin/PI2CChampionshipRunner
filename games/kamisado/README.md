@@ -16,63 +16,64 @@
       ["brown", ["yellow", "light"]]
     ],
     [
-      ["red", None],
-      ["orange", None],
-      ["pink", None],
-      ["green", None],
-      ["blue", None],
-      ["yellow", None],
-      ["brown", None],
-      ["purple", None]
+      ["red", null],
+      ["orange", null],
+      ["pink", null],
+      ["green", null],
+      ["blue", null],
+      ["yellow", null],
+      ["brown", null],
+      ["purple", null]
     ],
     [
-      ["green", None],
-      ["pink", None],
-      ["orange", None],
-      ["red", None],
-      ["purple", None],
-      ["brown", None],
-      ["yellow", None],
-      ["blue", None]
+      ["green", null],
+      ["pink", null],
+      ["orange", null],
+      ["red", null],
+      ["purple", null],
+      ["brown", null],
+      ["yellow", null],
+      ["blue", null]
     ],
     [
-      ["pink", None],
-      ["purple", None],
-      ["blue", None],
-      ["orange", None],
-      ["brown", None],
-      ["green", None],
-      ["red", None],
-      ["yellow", None]
+      ["pink", null],
+      ["purple", null],
+      ["blue", null],
+      ["orange", null],
+      ["brown", null],
+      ["green", null],
+      ["red", null],
+      ["yellow", null]
     ],
     [
-      ["yellow", None],
-      ["red", None],
-      ["green", None],
-      ["brown", None],
-      ["orange", None],
-      ["blue", None],
-      ["purple", None],
-      ["pink", None]],
-    [
-      ["blue", None],
-      ["yellow", None],
-      ["brown", None],
-      ["purple", None],
-      ["red", None],
-      ["orange", None],
-      ["pink", None],
-      ["green", None]
+      ["yellow", null],
+      ["red", null],
+      ["green", null],
+      ["brown", null],
+      ["orange", null],
+      ["blue", null],
+      ["purple", null],
+      ["pink", null]
     ],
     [
-      ["purple", None],
-      ["brown", None],
-      ["yellow", None],
-      ["blue", None],
-      ["green", None],
-      ["pink", None],
-      ["orange", None],
-      ["red", None]
+      ["blue", null],
+      ["yellow", null],
+      ["brown", null],
+      ["purple", null],
+      ["red", null],
+      ["orange", null],
+      ["pink", null],
+      ["green", null]
+    ],
+    [
+      ["purple", null],
+      ["brown", null],
+      ["yellow", null],
+      ["blue", null],
+      ["green", null],
+      ["pink", null],
+      ["orange", null],
+      ["red", null]
     ],
     [
       ["brown", ["yellow", "dark"]],
@@ -98,8 +99,9 @@ tiles.
 
 The `board` is a list of `row`. A `row` is a list of `cell`. A `cell` is a list
 that contains a `color` and a `tile`. A `tile` is a list that contains a `color`
-and a `kind`. A `color` is one of the **color strings**. A `kind` is either
-`"dark"` or `"light"`.
+and a `kind`. The `tile` can be `null` if there is no tile on that cell. A
+`color` is one of the **color strings**. A `kind` is either `"dark"` or
+`"light"`.
 
 The **color strings** are:
 
