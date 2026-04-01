@@ -146,6 +146,10 @@ def kamisado(players):
         current = state["current"]
         color = state["color"]
 
+        other = (current + 1) % 2
+        new_board = copy.deepcopy(board)
+        next_color = board[end_row][end_col][COLOR]
+
         if board[start_row][start_col][TILE] is None:
             raise game.BadMove("There is no tile at the start position.")
 
@@ -161,9 +165,9 @@ def kamisado(players):
             else:
                 return {
                     "players": players,
-                    "current": (current + 1) % 2,
-                    "color": board[end_row][end_col][COLOR],
-                    "board": copy.deepcopy(board),
+                    "current": other,
+                    "color": next_color,
+                    "board": new_board,
                 }
 
         if board[end_row][end_col][TILE] is not None:
@@ -195,7 +199,6 @@ def kamisado(players):
         if not ok:
             raise game.BadMove("Yon can't go through other tiles.")
 
-        new_board = copy.deepcopy(board)
         new_board[end_row][end_col][TILE] = new_board[start_row][start_col][TILE]
         new_board[start_row][start_col][TILE] = None
 
@@ -211,8 +214,6 @@ def kamisado(players):
                 f"{players[current]} wins",
             )
 
-        other = (current + 1) % 2
-        next_color = new_board[end_row][end_col][COLOR]
         next_tile = find_tile(new_board, next_color, KINDS[other])
 
         blocked_tiles = set()
