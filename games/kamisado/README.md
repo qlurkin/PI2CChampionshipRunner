@@ -1,5 +1,7 @@
 # Kamisado Game
 
+![The board](./board.png)
+
 ## The state
 
 ```json
