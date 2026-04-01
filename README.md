@@ -8,17 +8,13 @@ Les clients seront généralement des IAs.
 Les clients doivent d'abord s'inscrire pour se faire connaître du serveur. Dès
 que deux clients sont inscrits, le serveur commence à faire jouer les matchs.
 
-Chaque participants affrontera tous les autres deux fois, une fois en temps que
-premier joueur et une fois en temps que deuxième joueur.
-
 Pendant un match, le serveur interroge les joueurs tour à tour pour savoir quel
 coups ils veulent jouer.
 
 ## Communication
 
 Tous les échanges entre le serveur et les clients se font par des communications
-réseaux TCP en mode texte. Le contenu des messages sera toujours des objects
-JSON.
+réseaux TCP. Les contenus des messages seront toujours des documents JSON.
 
 Les requêtes contiendront toujours une clé "request" et pourront contenir
 d'autres clés en fonction de la nature de la requête (voir plus bas).
@@ -26,11 +22,17 @@ d'autres clés en fonction de la nature de la requête (voir plus bas).
 Les réponses contiendront toujours une clé "response" et pourront également
 contenir d'autre clés en fonction de la réponse.
 
+Chaque requête ou réponse sera précédée de la taille du document JSON en octets
+encodée dans un entier binaire non signé. Le document lui même sera encodé en
+UTF-8.
+
 ## Installer les dépendances
 
 ```shell
 python -m pip install -r requirements.txt
 ```
+
+Utilisez un environnement virtuel s'il y a lieu.
 
 ## Démarrer le serveur
 
@@ -146,5 +148,5 @@ Le client peut également abandonner avec la réponse:
 Abandonner est parfois nécessaire dans certains jeux lorsque plus aucun coup
 n'est possible.
 
-La réponse doit généralement être envoyée dans laps de temps précis (5 secondes)
-sinon elle sera considérée comme un coup invalide et fera perdre une vie.
+La réponse doit généralement être envoyée dans laps de temps précis sinon elle
+sera considérée comme un coup invalide et fera perdre une vie.
