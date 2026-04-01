@@ -158,17 +158,24 @@ def kamisado(players):
         if start == end:
             if not blocked(board, start):
                 raise game.BadMove("You must move if you can.")
-        else:
-            if board[end_row][end_col][TILE] is not None:
-                raise game.BadMove("End position is not empty.")
+            else:
+                return {
+                    "players": players,
+                    "current": (current + 1) % 2,
+                    "color": board[end_row][end_col][COLOR],
+                    "board": copy.deepcopy(board),
+                }
 
-            progress = end_row - start_row
-            if progress > 0 == DIRECTION_POSITIVE[KINDS[current]]:
-                raise game.BadMove("Tiles cannot go backward.")
+        if board[end_row][end_col][TILE] is not None:
+            raise game.BadMove("End position is not empty.")
 
-            if end_col != start_col:
-                if abs(end_col - start_col) != abs(end_row - start_row):
-                    raise game.BadMove("Tiles must move ahead or diagonally.")
+        progress = end_row - start_row
+        if progress > 0 == DIRECTION_POSITIVE[KINDS[current]]:
+            raise game.BadMove("Tiles cannot go backward.")
+
+        if end_col != start_col:
+            if abs(end_col - start_col) != abs(end_row - start_row):
+                raise game.BadMove("Tiles must move ahead or diagonally.")
 
         dir = [end_row - start_row, end_col - start_col]
         dir = map(lambda v: 0.0 if v == 0 else v / abs(v), dir)
@@ -189,10 +196,8 @@ def kamisado(players):
             raise game.BadMove("Yon can't go through other tiles.")
 
         new_board = copy.deepcopy(board)
-
-        if start != end:
-            new_board[end_row][end_col][TILE] = new_board[start_row][start_col][TILE]
-            new_board[start_row][start_col][TILE] = None
+        new_board[end_row][end_col][TILE] = new_board[start_row][start_col][TILE]
+        new_board[start_row][start_col][TILE] = None
 
         if end_row == END_ROW[KINDS[current]]:
             raise game.GameWin(
