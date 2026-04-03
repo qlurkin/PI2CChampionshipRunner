@@ -167,6 +167,7 @@ async def runMatch(Game, match: Match, tempo: float):
         raise game.GameWin(other.index, matchState)
 
     except game.GameWin as e:
+        match.moves += 1
         winner = players[e.winner]
         match.winner = winner.client
         msg = "Match Done. {} Won".format(winner.client.name)
@@ -174,6 +175,7 @@ async def runMatch(Game, match: Match, tempo: float):
         chat.addMessage(Message(name="Admin", message=msg))
 
     except game.GameDraw:
+        match.moves += 1
         winner = None
         msg = "Match Done with no winner"
         log.info(msg)
