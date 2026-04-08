@@ -193,17 +193,22 @@ async def dumpState():
         await tic()
         clients = []
         for client in State.clients.values():
-            clients.append({
-                "matricules": list(client.matricules),
-                "name": client.name,
-                "points": State.getPoints(client),
-                "bad_moves": State.getBadMoves(client),
-                "match_count": State.getMatchCount(client),
-            })
+            clients.append(
+                {
+                    "matricules": list(client.matricules),
+                    "name": client.name,
+                    "points": State.getPoints(client),
+                    "bad_moves": State.getBadMoves(client),
+                    "match_count": State.getMatchCount(client),
+                }
+            )
         matches = []
         for match in State.matches:
             dumped_match = {
-                "clients": [{"name": c.name, "matricules": list(c.matricules)} for c in match.clients],
+                "clients": [
+                    {"name": c.name, "matricules": list(c.matricules)}
+                    for c in match.clients
+                ],
                 "bad_moves": match.badMoves,
                 "moves": match.moves,
                 "status": match.status.name,
@@ -213,14 +218,20 @@ async def dumpState():
                 dumped_match["time"] = match.end - match.start
 
             if match.winner is None:
-                dumped_match['winner'] = None
+                dumped_match["winner"] = None
             else:
-                dumped_match['winner'] = {"name": match.winner.name, "matricules": list(match.winner.matricules)}
+                dumped_match["winner"] = {
+                    "name": match.winner.name,
+                    "matricules": list(match.winner.matricules),
+                }
 
             matches.append(dumped_match)
 
         with open(stateFilename, "w", encoding="utf8") as file:
-            s = {"clients": list(reversed(sorted(clients, key=lambda c: c["points"]))), "matches": matches}
+            s = {
+                "clients": list(reversed(sorted(clients, key=lambda c: c["points"]))),
+                "matches": matches,
+            }
             try:
                 to_write = json.dumps(s, indent=2)
                 file.write(to_write)

@@ -11,6 +11,8 @@ que deux clients sont inscrits, le serveur commence à faire jouer les matchs.
 Pendant un match, le serveur interroge les joueurs tour à tour pour savoir quel
 coups ils veulent jouer.
 
+Il y aura un match aller et un match retour entre chaque paire de clients.
+
 ## Communication
 
 Tous les échanges entre le serveur et les clients se font par des communications
@@ -148,5 +150,5 @@ Le client peut également abandonner avec la réponse:
 Abandonner est parfois nécessaire dans certains jeux lorsque plus aucun coup
 n'est possible.
 
-La réponse doit généralement être envoyée dans laps de temps précis sinon elle
-sera considérée comme un coup invalide et fera perdre une vie.
+La réponse doit être envoyée dans les 3 secondes sinon elle sera considérée
+comme un coup invalide et fera perdre une vie.
