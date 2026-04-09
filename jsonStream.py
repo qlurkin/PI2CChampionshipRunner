@@ -30,6 +30,8 @@ async def readJSON(reader: asyncio.StreamReader):
     received = 0
 
     buffer = await reader.read(4)
+    if len(buffer) == 0:
+        raise ReadError("Distant socket closed")
     total = struct.unpack("I", buffer)[0]
 
     while received < total:
@@ -77,7 +79,7 @@ async def fetch(client, request, baseTime=0.25, retries=10, timeout=10.0):
                 )  # , happy_eyeballs_delay=0.25)
                 reader, writer = await asyncio.wait_for(coro, baseTime * (i + 1))
                 break
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.debug("Connection take too long. Retry({})...".format(i + 1))
             except OSError as e:
                 log.debug("Connection error: {}. Retry({})...".format(e, i + 1))
@@ -96,6 +98,6 @@ async def fetch(client, request, baseTime=0.25, retries=10, timeout=10.0):
         writer.close()
         await writer.wait_closed()
         return response, responseTime
-    except (OSError, FetchError, asyncio.TimeoutError, ReadError) as e:
+    except (OSError, FetchError, TimeoutError, ReadError) as e:
         client.status = ClientStatus.LOST
         raise FetchError(str(e))
