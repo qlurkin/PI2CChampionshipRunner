@@ -104,9 +104,9 @@ async def ui(gameName, render, ip, port, theme):
     if theme == "light":
         key_color = (0.2, 0.2, 0.2, 1.0)
 
-    lost_color = (0.0, 1.0, 0.0, 1.0)
+    lost_color = (1.0, 0.55, 0.0, 1.0)
     if theme == "light":
-        lost_color = (0.0, 0.5, 0.0, 1.0)
+        lost_color = (0.7, 0.4, 0.0, 1.0)
 
     log.info("UI started")
     imgui.create_context()
