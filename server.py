@@ -12,7 +12,7 @@ from utils import get_ip
 log = getLogger("server")
 
 
-async def main(gameName: str, port: int, tempo: float, parall: bool):
+async def main(gameName: str, port: int, tempo: float, parall: bool, theme: str):
     log.info("Game Server For {}".format(gameName.capitalize()))
     IPAddr = get_ip()
 
@@ -24,7 +24,7 @@ async def main(gameName: str, port: int, tempo: float, parall: bool):
     rescuerTask = asyncio.create_task(rescuer())
     matchAwaiterTask = asyncio.create_task(matchAwaiter())
 
-    await ui(gameName, render, IPAddr, port)
+    await ui(gameName, render, IPAddr, port, theme)
 
     inscriptionTask.cancel()
     try:
@@ -80,6 +80,12 @@ if __name__ == "__main__":
         help="Don't run match in parallele",
         default=True,
     )
+    parser.add_argument(
+        "--theme",
+        choices=["light", "dark"],
+        help="The color theme",
+        default="light",
+    )
     args = parser.parse_args()
 
-    asyncio.run(main(args.gameName, args.port, args.tempo, args.parall))
+    asyncio.run(main(args.gameName, args.port, args.tempo, args.parall, args.theme))
