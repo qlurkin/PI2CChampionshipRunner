@@ -24,6 +24,16 @@ log = getLogger("ui")
 
 textures = []
 
+theme = "light"
+
+key_color = (0.8, 0.8, 0.8, 1.0)
+if theme == "light":
+    key_color = (0.2, 0.2, 0.2, 1.0)
+
+lost_color = (0.0, 1.0, 0.0, 1.0)
+if theme == "light":
+    lost_color = (0.0, 0.5, 0.0, 1.0)
+
 
 def createTextureFromPIL(pilImage):
     data = pilImage.tobytes()
@@ -102,6 +112,8 @@ def matchSortKey():
 async def ui(gameName, render, ip, port):
     log.info("UI started")
     imgui.create_context()
+    if theme == "light":
+        imgui.style_colors_light()
     window = impl_glfw_init("{} Runner".format(gameName.capitalize()))
     impl = GlfwRenderer(window)
     io = imgui.get_io()
@@ -109,7 +121,7 @@ async def ui(gameName, render, ip, port):
     imgui.get_style().scale_all_sizes(SCALE_FACTOR)
 
     def print_key_value(key, value):
-        imgui.push_style_color(imgui.Col_.text.value, (0.8, 0.8, 0.8, 1.0))
+        imgui.push_style_color(imgui.Col_.text.value, key_color)
         imgui.text(str(key) + ":")
         imgui.pop_style_color()
         imgui.same_line()
@@ -141,7 +153,7 @@ async def ui(gameName, render, ip, port):
         ):
             imgui.push_id(str(client.matricules))
             if client.status != ClientStatus.READY:
-                imgui.push_style_color(imgui.Col_.text.value, (0.0, 1.0, 0.0, 1.0))
+                imgui.push_style_color(imgui.Col_.text.value, lost_color)
                 pass
 
             show = imgui.collapsing_header("{}".format(client.name))
